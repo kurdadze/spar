@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">SparEmployee</string>
+    <string name="take_photo">ფოტო</string>
+    <string name="start_capture">ვიდეო დაწყება</string>
+    <string name="stop_capture">ვიდეო დასრულება</string>
+    <string name="file">ფაილი</string>
+</resources>

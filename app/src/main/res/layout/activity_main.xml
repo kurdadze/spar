@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <androidx.camera.view.PreviewView
+        android:id="@+id/viewFinder"
+        android:layout_width="match_parent"
+        android:layout_height="450dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="-35dp" />
+
+    <ImageButton
+        android:id="@+id/image_capture_button"
+        android:layout_width="92dp"
+        android:layout_height="92dp"
+        android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/viewFinder" />
+
+    <TextView
+        android:id="@+id/textViewNumber"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="აკრიფეთ კოდი"
+        android:textAlignment="center"
+        android:textSize="35sp"
+        android:maxLength="5"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/viewFinder" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number1"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/ic_shutter"
+        android:text="1"
+        android:textSize="30sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewNumber" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number2"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:scaleType="fitCenter"
+        android:background="@drawable/ic_shutter"
+        android:text="2"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toStartOf="@+id/number3"
+        app:layout_constraintStart_toEndOf="@+id/number1"
+        app:layout_constraintTop_toBottomOf="@+id/textViewNumber" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number3"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="50dp"
+        android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
+        android:text="3"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewNumber" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number4"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
+        android:text="4"
+        android:textSize="30sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/number1" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number5"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:scaleType="fitCenter"
+        android:background="@drawable/ic_shutter"
+        android:text="5"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toStartOf="@+id/number6"
+        app:layout_constraintStart_toEndOf="@+id/number4"
+        app:layout_constraintTop_toBottomOf="@+id/number2" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number6"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="50dp"
+        android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
+        android:text="6"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/number3" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number7"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
+        android:text="7"
+        android:textSize="30sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/number4" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number8"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:scaleType="fitCenter"
+        android:background="@drawable/ic_shutter"
+        android:text="8"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toStartOf="@+id/number9"
+        app:layout_constraintStart_toEndOf="@+id/number7"
+        app:layout_constraintTop_toBottomOf="@+id/number5" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number9"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="50dp"
+        android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
+        android:text="9"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/number6" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/number0"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:scaleType="fitCenter"
+        android:background="@drawable/ic_shutter"
+        android:text="0"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toStartOf="@+id/number9"
+        app:layout_constraintStart_toEndOf="@+id/number7"
+        app:layout_constraintTop_toBottomOf="@+id/number8" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/numberBackSpace"
+        android:layout_width="120dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="25dp"
+        android:background="@drawable/btn_shape_rectangle"
+        android:scaleType="fitCenter"
+        android:text="წაშლა"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toEndOf="@+id/number0"
+        app:layout_constraintTop_toBottomOf="@+id/number9" />
+
+    <Button
+        android:id="@+id/file_button"
+        android:layout_width="110dp"
+        android:layout_height="110dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginBottom="250dp"
+        android:elevation="2dp"
+        android:text="@string/file"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <Button
+        android:id="@+id/video_capture_button"
+        android:layout_width="110dp"
+        android:layout_height="110dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginBottom="50dp"
+        android:elevation="2dp"
+        android:text="@string/start_capture"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="334dp"
+        android:text="TextView"
+        android:textColor="@android:color/holo_red_light"
+        android:visibility="gone" />
+    <!--    -->
+    <!--    <androidx.constraintlayout.widget.Guideline-->
+    <!--        android:id="@+id/vertical_centerline"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:orientation="vertical"-->
+    <!--        app:layout_constraintGuide_percent=".50" />-->
+
+</androidx.constraintlayout.widget.ConstraintLayout>
