@@ -8,9 +8,12 @@ import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.Handler
 import android.provider.MediaStore
 import android.provider.MediaStore.Images
 import android.provider.MediaStore.MediaColumns
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -77,6 +80,20 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        viewBinding.textViewNumber.addTextChangedListener(object : TextWatcher {
+
+            override fun afterTextChanged(s: Editable) {
+            }
+
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                if(count == 5){
+                    checkEmployee(s.toString())
+                }
+            }
+        })
         // Set up the listeners for number buttons
         viewBinding.numberBackSpace.setOnClickListener { deleteNumber() }
         viewBinding.number0.setOnClickListener { defNumber("0") }
@@ -111,7 +128,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkEmployee(code: String) {
-//
+        viewBinding.textViewNumber.text = ""
+        viewBinding.toastTextView.text = ""
+        if(code == "11223"){
+            viewBinding.toastTextView.text = "იოსებ ქურდაძე"
+        } else {
+            viewBinding.toastTextView.text = "კოდი არასწორია"
+        }
+        Handler().postDelayed({
+            viewBinding.toastTextView.text = ""
+        }, 1500)
     }
 
     private fun deleteNumber(){
@@ -180,10 +206,9 @@ class MainActivity : AppCompatActivity() {
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
                     val msg = "Photo capture succeeded: ${output.savedUri}"
                     dbManager?.insertToDb("01234",output.savedUri.toString() + "/" +name,"0")
-                    viewBinding.textView.text = ""
                     for (worker in dbManager!!.fromDb) {
-                        viewBinding.textView.append(worker.photoPath)
-                        viewBinding.textView.append("\n")
+//                        viewBinding.textView.append(worker.photoPath)
+//                        viewBinding.textView.append("\n")
                     }
 
 
@@ -348,10 +373,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         dbManager?.openDb()
-        viewBinding.textView.text = ""
         for (worker in dbManager!!.fromDb) {
-            viewBinding.textView.append(worker.photoPath)
-            viewBinding.textView.append("\n")
+//            viewBinding.textView.append(worker.photoPath)
+//            viewBinding.textView.append("\n")
         }
 
     }

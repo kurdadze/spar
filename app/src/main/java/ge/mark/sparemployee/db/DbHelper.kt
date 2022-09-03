@@ -1,25 +1,17 @@
-package ge.mark.sparemployee.db;
+package ge.mark.sparemployee.db
 
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.content.Context
+import android.database.sqlite.SQLiteOpenHelper
+import android.database.sqlite.SQLiteDatabase
 
-import androidx.annotation.Nullable;
-
-public class DbHelper extends SQLiteOpenHelper {
-
-    public DbHelper(@Nullable Context context) {
-        super(context, Constants.DB_NAME, null, Constants.DB_VERSION);
+class DbHelper(context: Context?) :
+    SQLiteOpenHelper(context, Constants.DB_NAME, null, Constants.DB_VERSION) {
+    override fun onCreate(sqLiteDatabase: SQLiteDatabase) {
+        sqLiteDatabase.execSQL(Constants.TABLE_STRUCTURE)
     }
 
-    @Override
-    public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        sqLiteDatabase.execSQL(Constants.TABLE_STRUCTURE);
-    }
-
-    @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL(Constants.DROP_TABLE);
-        onCreate(sqLiteDatabase);
+    override fun onUpgrade(sqLiteDatabase: SQLiteDatabase, i: Int, i1: Int) {
+        sqLiteDatabase.execSQL(Constants.DROP_TABLE)
+        onCreate(sqLiteDatabase)
     }
 }
