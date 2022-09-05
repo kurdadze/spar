@@ -216,6 +216,16 @@
         app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
         app:layout_constraintEnd_toEndOf="@+id/viewFinder" />
 
+    <Button
+        android:id="@+id/photo_activity"
+        android:layout_width="134dp"
+        android:layout_height="79dp"
+        android:elevation="2dp"
+        android:text="ფოტოები"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
+        app:layout_constraintEnd_toEndOf="@+id/viewFinder" />
+
     <!--    -->
     <!--    <androidx.constraintlayout.widget.Guideline-->
     <!--        android:id="@+id/vertical_centerline"-->

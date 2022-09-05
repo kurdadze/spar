@@ -3,6 +3,9 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/MyFolder/Projects/android/spar/app/src/main/res/layout/activity_main.xml" value="0.22826086956521738" />
+        <entry key="..\:/MyFolder/Projects/android/spar/app/src/main/res/layout/activity_photo.xml" value="0.259375" />
+        <entry key="..\:/MyFolder/Projects/android/spar/app/src/main/res/layout/card_items_work.xml" value="0.2453125" />
         <entry key="..\:/Users/soso/AndroidStudioProjects/spar/app/src/main/res/layout/activity_main.xml" value="0.23324275362318841" />
         <entry key="app/src/main/res/drawable/btn_shape_rectangle.xml" value="0.298" />
         <entry key="app/src/main/res/drawable/ic_shutter.xml" value="0.3175" />
@@ -14,7 +17,7 @@
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" project-jdk-name="1.8" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

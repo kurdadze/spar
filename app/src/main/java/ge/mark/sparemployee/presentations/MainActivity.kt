@@ -1,8 +1,9 @@
-package ge.mark.sparemployee
+package ge.mark.sparemployee.presentations
 
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentValues
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
 import android.os.Build
@@ -25,8 +26,11 @@ import androidx.camera.video.VideoCapture
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
+import ge.mark.sparemployee.R
 import ge.mark.sparemployee.databinding.ActivityMainBinding
-import ge.mark.sparemployee.db.DbManager
+import ge.mark.sparemployee.helpers.DbHelper
+import ge.mark.sparemployee.models.User
+import ge.mark.sparemployee.models.Worker
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.*
@@ -36,10 +40,9 @@ import java.util.concurrent.Executors
 
 typealias LumaListener = (luma: Double) -> Unit
 
-
 class MainActivity : AppCompatActivity() {
 
-    private var dbManager: DbManager? = null
+    private lateinit var dbHelper: DbHelper
 
     val CAMERA_IMAGE_BUCKET_NAME = (Environment.getExternalStorageDirectory().toString()
             + "/DCIM/Camera")
@@ -66,7 +69,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        dbManager= DbManager(this)
+        dbHelper = DbHelper(this)
 
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
@@ -80,6 +83,11 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        viewBinding.photoActivity.setOnClickListener {
+            val intent = Intent(this, PhotoActivity::class.java)
+            startActivity(intent)
+        }
+
         viewBinding.textViewNumber.addTextChangedListener(object : TextWatcher {
 
             override fun afterTextChanged(s: Editable) {
@@ -89,7 +97,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-                if(count == 5){
+                if (count == 5) {
                     checkEmployee(s.toString())
                 }
             }
@@ -117,33 +125,47 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun defNumber(str: String){
+    private fun defNumber(str: String) {
         val tmpTextViewNumber = viewBinding.textViewNumber
-        if(tmpTextViewNumber.length() < tmpTextViewNumber.maxLines){
+        if (tmpTextViewNumber.length() < tmpTextViewNumber.maxLines) {
             viewBinding.textViewNumber.text = tmpTextViewNumber.text.toString() + str
         }
-        if(tmpTextViewNumber.length() == tmpTextViewNumber.maxLines){
+        if (tmpTextViewNumber.length() == tmpTextViewNumber.maxLines) {
             checkEmployee(tmpTextViewNumber.text.toString())
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun checkEmployee(code: String) {
-        viewBinding.textViewNumber.text = ""
         viewBinding.toastTextView.text = ""
-        if(code == "11223"){
-            viewBinding.toastTextView.text = "იოსებ ქურდაძე"
-        } else {
+        val userCode: User = dbHelper.checkUsers(viewBinding.textViewNumber.text.toString())
+        if(userCode.pass_code == viewBinding.textViewNumber.text.toString()){
+            viewBinding.toastTextView.text = "მოგესალმებით ${userCode.first_name}"
+        } else{
             viewBinding.toastTextView.text = "კოდი არასწორია"
+            viewBinding.textViewNumber.text = ""
+            Handler().postDelayed({
+                viewBinding.toastTextView.text = ""
+            }, 1500)
         }
-        Handler().postDelayed({
-            viewBinding.toastTextView.text = ""
-        }, 1500)
+
+
+//        viewBinding.toastTextView.text = ""
+//        if (code == "11223") {
+//            viewBinding.toastTextView.text = "იოსებ ქურდაძე"
+//        } else {
+//            viewBinding.toastTextView.text = "კოდი არასწორია"
+//            viewBinding.textViewNumber.text = ""
+//            Handler().postDelayed({
+//                viewBinding.toastTextView.text = ""
+//            }, 1500)
+//        }
     }
 
-    private fun deleteNumber(){
+    private fun deleteNumber() {
         val tmpTextViewNumber = viewBinding.textViewNumber.text
-        if(tmpTextViewNumber.isNotEmpty()){
-            val s = tmpTextViewNumber.subSequence(0, tmpTextViewNumber.length-1)
+        if (tmpTextViewNumber.isNotEmpty()) {
+            val s = tmpTextViewNumber.subSequence(0, tmpTextViewNumber.length - 1)
             viewBinding.textViewNumber.text = s
         }
     }
@@ -173,10 +195,11 @@ class MainActivity : AppCompatActivity() {
         val imageCapture = imageCapture ?: return
 
         // Create time stamped name and MediaStore entry.
-        val name = "spar - " + Math.random().toString() + " - " + SimpleDateFormat(
+        val dateTime = SimpleDateFormat(
             FILENAME_FORMAT,
             Locale.US
         ).format(System.currentTimeMillis())
+        val name = "spar - " + Math.random().toString() + " - " + dateTime
         val contentValues = ContentValues().apply {
             put(MediaColumns.DISPLAY_NAME, name)
             put(MediaColumns.MIME_TYPE, "image/jpeg")
@@ -204,16 +227,23 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
-                    val msg = "Photo capture succeeded: ${output.savedUri}"
-                    dbManager?.insertToDb("01234",output.savedUri.toString() + "/" +name,"0")
-                    for (worker in dbManager!!.fromDb) {
+                    val worker = Worker(
+                        code = viewBinding.textViewNumber.text.toString(),
+                        photo_path = output.savedUri.toString() + "/" + name + ".jpg",
+                        photo = "$name.jpg",
+                        date_time = dateTime,
+                        forwarded = "0"
+                    )
+                    val insertStatus = dbHelper.insertWorker(worker)
+                    if (insertStatus > -1) {
+                        Toast.makeText(applicationContext, "Worker added...", Toast.LENGTH_SHORT).show()
+                        viewBinding.textViewNumber.text = ""
+                        viewBinding.toastTextView.text = ""
+                    }
+//                    for (worker in dbManager!!.fromDb) {
 //                        viewBinding.textView.append(worker.photoPath)
 //                        viewBinding.textView.append("\n")
-                    }
-
-
-                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
-                    Log.d(TAG, msg)
+//                    }
                 }
             }
         )
@@ -367,22 +397,20 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
-        dbManager?.closeDb()
+        dbHelper.close()
     }
 
     override fun onResume() {
         super.onResume()
-        dbManager?.openDb()
-        for (worker in dbManager!!.fromDb) {
+//        dbHelper.openDb()
+//        for (worker in dbManager!!.fromDb) {
 //            viewBinding.textView.append(worker.photoPath)
 //            viewBinding.textView.append("\n")
-        }
+//        }
 
     }
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults:
-        IntArray
-    ) {
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults:IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {

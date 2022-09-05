@@ -4,9 +4,11 @@
     package="ge.mark.sparemployee">
 
     <uses-feature android:name="android.hardware.camera.any" />
+
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
     <application
@@ -19,6 +21,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SparEmployee"
         tools:targetApi="31">
+        <activity
+            android:name=".presentations.PhotoActivity"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
