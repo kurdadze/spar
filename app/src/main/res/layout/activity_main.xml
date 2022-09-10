@@ -9,13 +9,22 @@
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
-        android:layout_height="450dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="-35dp" >
+        android:layout_height="500dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
     </androidx.camera.view.PreviewView>
+
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/appCompatImageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:adjustViewBounds="true"
+        app:layout_constraintBottom_toTopOf="@+id/toastTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/sparlogo1" />
 
     <TextView
         android:id="@+id/toastTextView"
@@ -34,6 +43,7 @@
         android:id="@+id/image_capture_button"
         android:layout_width="92dp"
         android:layout_height="92dp"
+        android:layout_marginBottom="15dp"
         android:background="@drawable/ic_shutter"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
@@ -45,9 +55,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="აკრიფეთ კოდი"
+        android:maxLength="5"
         android:textAlignment="center"
         android:textSize="35sp"
-        android:maxLength="5"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/viewFinder" />
@@ -69,8 +79,8 @@
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:layout_marginTop="30dp"
-        android:scaleType="fitCenter"
         android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
         android:text="2"
         android:textSize="30sp"
         app:layout_constraintEnd_toStartOf="@+id/number3"
@@ -108,8 +118,8 @@
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:layout_marginTop="30dp"
-        android:scaleType="fitCenter"
         android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
         android:text="5"
         android:textSize="30sp"
         app:layout_constraintEnd_toStartOf="@+id/number6"
@@ -147,8 +157,8 @@
         android:layout_width="70dp"
         android:layout_height="70dp"
         android:layout_marginTop="30dp"
-        android:scaleType="fitCenter"
         android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
         android:text="8"
         android:textSize="30sp"
         app:layout_constraintEnd_toStartOf="@+id/number9"
@@ -169,17 +179,30 @@
         app:layout_constraintTop_toBottomOf="@+id/number6" />
 
     <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/clearAll"
+        android:layout_width="120dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/btn_shape_rectangle"
+        android:scaleType="fitCenter"
+        android:text="Clear"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/number8" />
+
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/number0"
         android:layout_width="70dp"
         android:layout_height="70dp"
+        android:layout_marginStart="50dp"
         android:layout_marginTop="30dp"
-        android:scaleType="fitCenter"
         android:background="@drawable/ic_shutter"
+        android:scaleType="fitCenter"
         android:text="0"
         android:textSize="30sp"
-        app:layout_constraintEnd_toStartOf="@+id/number9"
-        app:layout_constraintStart_toEndOf="@+id/number7"
-        app:layout_constraintTop_toBottomOf="@+id/number8" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/number7" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/numberBackSpace"
@@ -189,7 +212,7 @@
         android:layout_marginEnd="25dp"
         android:background="@drawable/btn_shape_rectangle"
         android:scaleType="fitCenter"
-        android:text="წაშლა"
+        android:text="DEL"
         android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"

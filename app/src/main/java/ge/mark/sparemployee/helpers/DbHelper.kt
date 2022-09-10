@@ -179,4 +179,12 @@ class DbHelper(context: Context) :
         db.execSQL("DELETE FROM $TABLE_NAME WHERE photo ='$photo'")
         db.close()
     }
+
+    fun deleteAllWorkers() {
+        val db = this.writableDatabase
+
+        val cv = ContentValues()
+        db.execSQL("DELETE FROM $TABLE_NAME")
+        db.close()
+    }
 }

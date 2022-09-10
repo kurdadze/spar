@@ -1,15 +1,14 @@
-package ge.mark.sparemployee.presentations
+package ge.mark.sparemployee
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.ContentValues
-import android.content.Intent
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
+import android.content.*
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
-import android.os.Build
-import android.os.Bundle
-import android.os.Environment
-import android.os.Handler
+import android.net.ConnectivityManager
+import android.os.*
 import android.provider.MediaStore
 import android.provider.MediaStore.Images
 import android.provider.MediaStore.MediaColumns
@@ -26,11 +25,13 @@ import androidx.camera.video.VideoCapture
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
-import ge.mark.sparemployee.R
 import ge.mark.sparemployee.databinding.ActivityMainBinding
 import ge.mark.sparemployee.helpers.DbHelper
+import ge.mark.sparemployee.helpers.SysHelper
 import ge.mark.sparemployee.models.User
 import ge.mark.sparemployee.models.Worker
+import ge.mark.sparemployee.services.MyReceiver
+import ge.mark.sparemployee.services.SparJobService
 import java.io.File
 import java.nio.ByteBuffer
 import java.util.*
@@ -43,6 +44,8 @@ typealias LumaListener = (luma: Double) -> Unit
 class MainActivity : AppCompatActivity() {
 
     private lateinit var dbHelper: DbHelper
+    private lateinit var sysHelper: SysHelper
+//    private lateinit var myReceiver: BroadcastReceiver
 
     val CAMERA_IMAGE_BUCKET_NAME = (Environment.getExternalStorageDirectory().toString()
             + "/DCIM/Camera")
@@ -65,10 +68,12 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var cameraExecutor: ExecutorService
 
+    @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        sysHelper = SysHelper(this)
         dbHelper = DbHelper(this)
 
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
@@ -84,6 +89,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         viewBinding.photoActivity.setOnClickListener {
+            Toast.makeText(this, sysHelper.getDeviceID(), Toast.LENGTH_SHORT).show()
             val intent = Intent(this, PhotoActivity::class.java)
             startActivity(intent)
         }
@@ -104,6 +110,8 @@ class MainActivity : AppCompatActivity() {
         })
         // Set up the listeners for number buttons
         viewBinding.numberBackSpace.setOnClickListener { deleteNumber() }
+        viewBinding.clearAll.setOnClickListener { clearAll() }
+
         viewBinding.number0.setOnClickListener { defNumber("0") }
         viewBinding.number1.setOnClickListener { defNumber("1") }
         viewBinding.number2.setOnClickListener { defNumber("2") }
@@ -122,6 +130,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            startJob()
+        }, 20000)
     }
 
     @SuppressLint("SetTextI18n")
@@ -139,27 +151,21 @@ class MainActivity : AppCompatActivity() {
     private fun checkEmployee(code: String) {
         viewBinding.toastTextView.text = ""
         val userCode: User = dbHelper.checkUsers(viewBinding.textViewNumber.text.toString())
-        if(userCode.pass_code == viewBinding.textViewNumber.text.toString()){
+        if (userCode.pass_code == viewBinding.textViewNumber.text.toString()) {
+            viewBinding.toastTextView.setTextColor(getColor(R.color.yellow))
             viewBinding.toastTextView.text = "მოგესალმებით ${userCode.first_name}"
-        } else{
+        } else {
+            viewBinding.toastTextView.setTextColor(getColor(R.color.red))
             viewBinding.toastTextView.text = "კოდი არასწორია"
             viewBinding.textViewNumber.text = ""
-            Handler().postDelayed({
+            Handler(Looper.getMainLooper()).postDelayed({
                 viewBinding.toastTextView.text = ""
             }, 1500)
         }
+    }
 
-
-//        viewBinding.toastTextView.text = ""
-//        if (code == "11223") {
-//            viewBinding.toastTextView.text = "იოსებ ქურდაძე"
-//        } else {
-//            viewBinding.toastTextView.text = "კოდი არასწორია"
-//            viewBinding.textViewNumber.text = ""
-//            Handler().postDelayed({
-//                viewBinding.toastTextView.text = ""
-//            }, 1500)
-//        }
+    private fun clearAll() {
+        viewBinding.textViewNumber.text = ""
     }
 
     private fun deleteNumber() {
@@ -236,14 +242,13 @@ class MainActivity : AppCompatActivity() {
                     )
                     val insertStatus = dbHelper.insertWorker(worker)
                     if (insertStatus > -1) {
-                        Toast.makeText(applicationContext, "Worker added...", Toast.LENGTH_SHORT).show()
                         viewBinding.textViewNumber.text = ""
-                        viewBinding.toastTextView.text = ""
+                        viewBinding.toastTextView.setTextColor(getColor(R.color.green))
+                        viewBinding.toastTextView.text = "თქვენ წარმატებით დაფიქსირდით სისტემაში"
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            viewBinding.toastTextView.text = ""
+                        }, 1500)
                     }
-//                    for (worker in dbManager!!.fromDb) {
-//                        viewBinding.textView.append(worker.photoPath)
-//                        viewBinding.textView.append("\n")
-//                    }
                 }
             }
         )
@@ -394,23 +399,44 @@ class MainActivity : AppCompatActivity() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        cameraExecutor.shutdown()
-        dbHelper.close()
+    override fun onStart() {
+        super.onStart()
+        Log.d("qq","Start")
+//        broadcastIntent()
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Log.d("qq","Restart")
+        startJob()
     }
 
     override fun onResume() {
         super.onResume()
-//        dbHelper.openDb()
-//        for (worker in dbManager!!.fromDb) {
-//            viewBinding.textView.append(worker.photoPath)
-//            viewBinding.textView.append("\n")
-//        }
+        Log.d("qq","Resume")
 
+//        broadcastIntent()
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults:IntArray) {
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
+//        unregisterReceiver(myReceiver);
+        dbHelper.close()
+        stopJob()
+    }
+
+    override fun onPause() {
+        super.onPause()
+//        unregisterReceiver(myReceiver);
+        stopJob()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
@@ -458,5 +484,34 @@ class MainActivity : AppCompatActivity() {
                     add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 }
             }.toTypedArray()
+    }
+
+    private fun startJob() {
+
+        val componentName = ComponentName(this, SparJobService::class.java)
+        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            JobInfo.Builder(123, componentName)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setPeriodic((15 * 60 * 1000).toLong())
+                .setRequiresCharging(false)
+                .setPersisted(true)
+                .build()
+        } else {
+            TODO("VERSION.SDK_INT < P")
+        }
+
+        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+        val resultCode = scheduler.schedule(info)
+        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+            Log.i(TAG, "Job scheduled")
+        } else {
+            Log.i(TAG, "Job scheduling failed")
+        }
+    }
+
+    private fun stopJob() {
+        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+        scheduler.cancel(123)
+        Log.i(TAG, "Job cancelled")
     }
 }
