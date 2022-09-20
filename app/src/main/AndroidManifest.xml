@@ -45,7 +45,13 @@
             </intent-filter>
         </receiver>
         <service
-            android:name=".services.SparJobService"
+            android:name=".services.SparSendOfflineDataJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name=".services.SparPingJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service
+            android:name=".services.SparGetUserJobService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
 

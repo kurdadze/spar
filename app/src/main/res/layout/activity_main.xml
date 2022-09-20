@@ -9,7 +9,7 @@
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="470dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -21,7 +21,7 @@
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:adjustViewBounds="true"
-        app:layout_constraintBottom_toTopOf="@+id/toastTextView"
+        android:layout_marginTop="10dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/sparlogo1" />
@@ -46,6 +46,7 @@
         android:layout_marginBottom="15dp"
         android:background="@drawable/ic_shutter"
         android:scaleType="fitCenter"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/viewFinder" />
@@ -56,8 +57,10 @@
         android:layout_height="wrap_content"
         android:hint="აკრიფეთ კოდი"
         android:maxLength="5"
+        android:padding="5dp"
         android:textAlignment="center"
         android:textSize="35sp"
+        android:background="@drawable/edittext_border"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/viewFinder" />
@@ -245,9 +248,21 @@
         android:layout_height="79dp"
         android:elevation="2dp"
         android:text="ფოტოები"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
         app:layout_constraintEnd_toEndOf="@+id/viewFinder" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\u00a9 self.ge 2022"
+        android:textColor="@color/self_blue"
+        android:textSize="18sp"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clearAll" />
 
     <!--    -->
     <!--    <androidx.constraintlayout.widget.Guideline-->

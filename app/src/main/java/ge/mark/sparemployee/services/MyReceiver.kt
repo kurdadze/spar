@@ -18,7 +18,7 @@ class MyReceiver : BroadcastReceiver() {
             status = "No Internet Connection"
 //            Toast.makeText(context, "Place enable internet connection", Toast.LENGTH_LONG).show()
         } else {
-//        Toast.makeText(context, status, Toast.LENGTH_LONG).show()
+//            Toast.makeText(context, status, Toast.LENGTH_LONG).show()
         }
     }
 }

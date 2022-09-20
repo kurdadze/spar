@@ -18,28 +18,16 @@
             android:layout_height="100dp"/>
 
         <TextView
-            android:id="@+id/tvId"
+            android:id="@+id/tvControllerCode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Id"/>
+            android:text="Controller_Code"/>
 
         <TextView
-            android:id="@+id/tvCode"
+            android:id="@+id/tvPin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Code"/>
-
-        <TextView
-            android:id="@+id/tvPhotoPath"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="PhotoPath"/>
-
-        <TextView
-            android:id="@+id/tvPhoto"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Photo"/>
+            android:text="Pin"/>
 
         <TextView
             android:id="@+id/tvDateTime"
@@ -48,10 +36,22 @@
             android:text="DateTime"/>
 
         <TextView
-            android:id="@+id/tvForwarded"
+            android:id="@+id/tvPicture"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Forwarded"/>
+            android:text="Picture"/>
+
+        <TextView
+            android:id="@+id/tvHash"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hash"/>
+
+        <TextView
+            android:id="@+id/tvPhotoName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PhotoName"/>
 
     </LinearLayout>
 

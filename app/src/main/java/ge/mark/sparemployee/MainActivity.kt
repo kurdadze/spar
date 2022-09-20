@@ -7,7 +7,7 @@ import android.app.job.JobScheduler
 import android.content.*
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
-import android.net.ConnectivityManager
+import android.net.wifi.WifiManager
 import android.os.*
 import android.provider.MediaStore
 import android.provider.MediaStore.Images
@@ -15,63 +15,72 @@ import android.provider.MediaStore.MediaColumns
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.*
-import androidx.camera.video.VideoCapture
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import ge.mark.sparemployee.databinding.ActivityMainBinding
 import ge.mark.sparemployee.helpers.DbHelper
+import ge.mark.sparemployee.helpers.Network
 import ge.mark.sparemployee.helpers.SysHelper
 import ge.mark.sparemployee.models.User
 import ge.mark.sparemployee.models.Worker
+import ge.mark.sparemployee.network.calls.ApiCalls
 import ge.mark.sparemployee.services.MyReceiver
-import ge.mark.sparemployee.services.SparJobService
+import ge.mark.sparemployee.services.SparGetUserJobService
+import ge.mark.sparemployee.services.SparPingJobService
+import ge.mark.sparemployee.services.SparSendOfflineDataJobService
 import java.io.File
-import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 
-typealias LumaListener = (luma: Double) -> Unit
+//typealias LumaListener = (luma: Double) -> Unit
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var dbHelper: DbHelper
     private lateinit var sysHelper: SysHelper
-//    private lateinit var myReceiver: BroadcastReceiver
-
-    val CAMERA_IMAGE_BUCKET_NAME = (Environment.getExternalStorageDirectory().toString()
-            + "/DCIM/Camera")
-    val CAMERA_IMAGE_BUCKET_ID = getBucketId(CAMERA_IMAGE_BUCKET_NAME)
-
-    /**
-     * Matches code in MediaProvider.computeBucketValues. Should be a common
-     * function.
-     */
-    fun getBucketId(path: String): String {
-        return path.lowercase(Locale.getDefault()).hashCode().toString()
-    }
-
+    private lateinit var myReceiver: BroadcastReceiver
     private lateinit var viewBinding: ActivityMainBinding
+    private lateinit var cameraExecutor: ExecutorService
+
+
+//    val CAMERA_IMAGE_BUCKET_NAME = (Environment.getExternalStorageDirectory().toString() + "/DCIM/Camera")
+//    val CAMERA_IMAGE_BUCKET_ID = getBucketId(CAMERA_IMAGE_BUCKET_NAME)
+
+//    fun getBucketId(path: String): String {
+//        return path.lowercase(Locale.getDefault()).hashCode().toString()
+//    }
 
     private var imageCapture: ImageCapture? = null
 
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
 
-    private lateinit var cameraExecutor: ExecutorService
-
     @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        myReceiver = MyReceiver()
+        IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION).also {
+            registerReceiver(
+                myReceiver,
+                it
+            )
+        }
 
         sysHelper = SysHelper(this)
         dbHelper = DbHelper(this)
@@ -79,7 +88,6 @@ class MainActivity : AppCompatActivity() {
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-        // Request camera permissions
         if (allPermissionsGranted()) {
             startCamera()
         } else {
@@ -88,10 +96,28 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        viewBinding.number0.setOnClickListener { defNumber("0") }
+        viewBinding.number1.setOnClickListener { defNumber("1") }
+        viewBinding.number2.setOnClickListener { defNumber("2") }
+        viewBinding.number3.setOnClickListener { defNumber("3") }
+        viewBinding.number4.setOnClickListener { defNumber("4") }
+        viewBinding.number5.setOnClickListener { defNumber("5") }
+        viewBinding.number6.setOnClickListener { defNumber("6") }
+        viewBinding.number7.setOnClickListener { defNumber("7") }
+        viewBinding.number8.setOnClickListener { defNumber("8") }
+        viewBinding.number9.setOnClickListener { defNumber("9") }
+
         viewBinding.photoActivity.setOnClickListener {
             Toast.makeText(this, sysHelper.getDeviceID(), Toast.LENGTH_SHORT).show()
             val intent = Intent(this, PhotoActivity::class.java)
             startActivity(intent)
+        }
+        viewBinding.numberBackSpace.setOnClickListener { deleteNumber() }
+        viewBinding.clearAll.setOnClickListener { clearAll() }
+        viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
+        viewBinding.videoCaptureButton.setOnClickListener { captureVideo() }
+        viewBinding.fileButton.setOnClickListener {
+            getOfflinePhotos()
         }
 
         viewBinding.textViewNumber.addTextChangedListener(object : TextWatcher {
@@ -104,35 +130,21 @@ class MainActivity : AppCompatActivity() {
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 if (count == 5) {
+                    viewBinding.imageCaptureButton.visibility = VISIBLE;
                     checkEmployee(s.toString())
+                } else {
+                    viewBinding.imageCaptureButton.visibility = GONE;
+                    viewBinding.toastTextView.setBackgroundColor(0x00000000)
                 }
             }
         })
-        // Set up the listeners for number buttons
-        viewBinding.numberBackSpace.setOnClickListener { deleteNumber() }
-        viewBinding.clearAll.setOnClickListener { clearAll() }
-
-        viewBinding.number0.setOnClickListener { defNumber("0") }
-        viewBinding.number1.setOnClickListener { defNumber("1") }
-        viewBinding.number2.setOnClickListener { defNumber("2") }
-        viewBinding.number3.setOnClickListener { defNumber("3") }
-        viewBinding.number4.setOnClickListener { defNumber("4") }
-        viewBinding.number5.setOnClickListener { defNumber("5") }
-        viewBinding.number6.setOnClickListener { defNumber("6") }
-        viewBinding.number7.setOnClickListener { defNumber("7") }
-        viewBinding.number8.setOnClickListener { defNumber("8") }
-        viewBinding.number9.setOnClickListener { defNumber("9") }
-        // Set up the listeners for take photo and video capture buttons
-        viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
-        viewBinding.videoCaptureButton.setOnClickListener { captureVideo() }
-        viewBinding.fileButton.setOnClickListener {
-            getOfflinePhotos()
-        }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         Handler(Looper.getMainLooper()).postDelayed({
-            startJob()
+            startPingJob()
+            startGetUserJob()
+            startGetOfflineJob()
         }, 20000)
     }
 
@@ -150,26 +162,36 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetTextI18n")
     private fun checkEmployee(code: String) {
         viewBinding.toastTextView.text = ""
-        val userCode: User = dbHelper.checkUsers(viewBinding.textViewNumber.text.toString())
+        val userCode: User = dbHelper.checkUsers(code)
         if (userCode.pass_code == viewBinding.textViewNumber.text.toString()) {
-            viewBinding.toastTextView.setTextColor(getColor(R.color.yellow))
-            viewBinding.toastTextView.text = "მოგესალმებით ${userCode.first_name}"
-        } else {
-            viewBinding.toastTextView.setTextColor(getColor(R.color.red))
-            viewBinding.toastTextView.text = "კოდი არასწორია"
-            viewBinding.textViewNumber.text = ""
+            viewBinding.toastTextView.setBackgroundColor(getColor(R.color.white))
+            viewBinding.toastTextView.setTextColor(getColor(R.color.green))
+            viewBinding.toastTextView.text = "მოგესალმებით ${userCode.first_name} ${userCode.last_name}"
             Handler(Looper.getMainLooper()).postDelayed({
+                viewBinding.toastTextView.setBackgroundColor(0x00000000)
                 viewBinding.toastTextView.text = ""
-            }, 1500)
+                viewBinding.textViewNumber.text = ""
+            }, 10000)
+        } else {
+            viewBinding.toastTextView.setBackgroundColor(getColor(R.color.red))
+            viewBinding.toastTextView.setTextColor(getColor(R.color.white))
+            viewBinding.toastTextView.text = "კოდი არასწორია"
+            Handler(Looper.getMainLooper()).postDelayed({
+                viewBinding.toastTextView.setBackgroundColor(0x00000000)
+                viewBinding.toastTextView.text = ""
+                viewBinding.textViewNumber.text = ""
+            }, 2000)
         }
     }
 
     private fun clearAll() {
         viewBinding.textViewNumber.text = ""
+        viewBinding.toastTextView.text = ""
     }
 
     private fun deleteNumber() {
         val tmpTextViewNumber = viewBinding.textViewNumber.text
+        viewBinding.toastTextView.text = ""
         if (tmpTextViewNumber.isNotEmpty()) {
             val s = tmpTextViewNumber.subSequence(0, tmpTextViewNumber.length - 1)
             viewBinding.textViewNumber.text = s
@@ -199,15 +221,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun takePhoto() {
         val imageCapture = imageCapture ?: return
+        val pinCode = viewBinding.textViewNumber.text.toString()
 
-        // Create time stamped name and MediaStore entry.
-        val dateTime = SimpleDateFormat(
-            FILENAME_FORMAT,
-            Locale.US
-        ).format(System.currentTimeMillis())
-        val name = "spar - " + Math.random().toString() + " - " + dateTime
+        val pictureName = "spar - $pinCode - ${sysHelper.getDateTimeNow("yyyy-MM-dd HH_mm_ss")}"
+
         val contentValues = ContentValues().apply {
-            put(MediaColumns.DISPLAY_NAME, name)
+            put(MediaColumns.DISPLAY_NAME, pictureName)
             put(MediaColumns.MIME_TYPE, "image/jpeg")
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
                 put(Images.Media.RELATIVE_PATH, "Pictures/Spar")
@@ -233,26 +252,57 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+
+                    val filePathImg =
+                        Environment.getExternalStoragePublicDirectory("Pictures/Spar").toString()
+                    val ba = sysHelper.fileToBase64("$filePathImg/$pictureName.jpg")
+
+                    val pin = viewBinding.textViewNumber.text.toString()
+
+                    val hash =
+                        sysHelper.stringToMD5("${sysHelper.getDeviceID()}|$pin|${sysHelper.getDateTimeNow()}|$ba")
                     val worker = Worker(
-                        code = viewBinding.textViewNumber.text.toString(),
-                        photo_path = output.savedUri.toString() + "/" + name + ".jpg",
-                        photo = "$name.jpg",
-                        date_time = dateTime,
-                        forwarded = "0"
+                        controller_code = sysHelper.getDeviceID(),
+                        pin = pin,
+                        datetime = sysHelper.getDateTimeNow(),
+                        picture = ba!!,
+                        hash = hash,
+                        photo_name = "$pictureName.jpg"
                     )
                     val insertStatus = dbHelper.insertWorker(worker)
-                    if (insertStatus > -1) {
+                    if (insertStatus) {
+                        if (Network.isNetworkAvailable(context = applicationContext)) {
+                            ApiCalls.sendDataToServer(
+                                context = applicationContext,
+                                controller_code = worker.controller_code,
+                                pin = worker.pin,
+                                datetime = worker.datetime,
+                                picture = worker.picture,
+                                hash = worker.hash,
+                                photo_name = worker.photo_name
+                            )
+                        }
                         viewBinding.textViewNumber.text = ""
-                        viewBinding.toastTextView.setTextColor(getColor(R.color.green))
+                        viewBinding.toastTextView.setBackgroundColor(getColor(R.color.green))
+                        viewBinding.toastTextView.setTextColor(getColor(R.color.white))
                         viewBinding.toastTextView.text = "თქვენ წარმატებით დაფიქსირდით სისტემაში"
                         Handler(Looper.getMainLooper()).postDelayed({
                             viewBinding.toastTextView.text = ""
-                        }, 1500)
+                            viewBinding.toastTextView.setBackgroundColor(0x00000000)
+                        }, 2000)
                     }
                 }
             }
         )
     }
+
+//    private fun fileToBitmap(f: String): ByteArray {
+//        val filePath = File(f).path
+//        val bitmap = BitmapFactory.decodeFile(filePath)
+//        val stream = ByteArrayOutputStream()
+//        bitmap.compress(Bitmap.CompressFormat.JPEG, 30, stream)
+//        return stream.toByteArray()
+//    }
 
     private fun captureVideo() {
         val videoCapture = this.videoCapture ?: return
@@ -271,8 +321,8 @@ class MainActivity : AppCompatActivity() {
         val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
             .format(System.currentTimeMillis())
         val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
-            put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4")
+            put(MediaColumns.DISPLAY_NAME, name)
+            put(MediaColumns.MIME_TYPE, "video/mp4")
             if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
                 put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/CameraX-Video")
             }
@@ -401,35 +451,40 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        Log.d("qq","Start")
-//        broadcastIntent()
+        Log.d("qq", "Start")
     }
 
     override fun onRestart() {
         super.onRestart()
-        Log.d("qq","Restart")
-        startJob()
+        Log.d("qq", "Restart")
+        startPingJob()
+        startGetUserJob()
+        startGetOfflineJob()
     }
 
     override fun onResume() {
         super.onResume()
-        Log.d("qq","Resume")
-
-//        broadcastIntent()
+        Log.d("qq", "Resume")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
-//        unregisterReceiver(myReceiver);
         dbHelper.close()
-        stopJob()
+        stopJob(123)
+        stopJob(321)
+        stopJob(111)
     }
+
+//    override fun onStop() {
+//        super.onStop()
+//    }
 
     override fun onPause() {
         super.onPause()
-//        unregisterReceiver(myReceiver);
-        stopJob()
+        stopJob(123)
+        stopJob(321)
+        stopJob(111)
     }
 
     override fun onRequestPermissionsResult(
@@ -449,27 +504,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnalysis.Analyzer {
-
-        private fun ByteBuffer.toByteArray(): ByteArray {
-            rewind()    // Rewind the buffer to zero
-            val data = ByteArray(remaining())
-            get(data)   // Copy the buffer into a byte array
-            return data // Return the byte array
-        }
-
-        override fun analyze(image: ImageProxy) {
-
-            val buffer = image.planes[0].buffer
-            val data = buffer.toByteArray()
-            val pixels = data.map { it.toInt() and 0xFF }
-            val luma = pixels.average()
-
-            listener(luma)
-
-            image.close()
-        }
-    }
+//    private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnalysis.Analyzer {
+//
+//        private fun ByteBuffer.toByteArray(): ByteArray {
+//            rewind()    // Rewind the buffer to zero
+//            val data = ByteArray(remaining())
+//            get(data)   // Copy the buffer into a byte array
+//            return data // Return the byte array
+//        }
+//
+//        override fun analyze(image: ImageProxy) {
+//
+//            val buffer = image.planes[0].buffer
+//            val data = buffer.toByteArray()
+//            val pixels = data.map { it.toInt() and 0xFF }
+//            val luma = pixels.average()
+//
+//            listener(luma)
+//
+//            image.close()
+//        }
+//    }
 
     companion object {
         private const val TAG = "CameraXApp"
@@ -486,9 +541,31 @@ class MainActivity : AppCompatActivity() {
             }.toTypedArray()
     }
 
-    private fun startJob() {
+    private fun startGetOfflineJob() {
+        val componentName = ComponentName(this, SparSendOfflineDataJobService::class.java)
+        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            JobInfo.Builder(111, componentName)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setPeriodic((15 * 60 * 1000).toLong())
+                .setRequiresCharging(false)
+                .setPersisted(true)
+                .build()
+        } else {
+            TODO("VERSION.SDK_INT < P")
+        }
 
-        val componentName = ComponentName(this, SparJobService::class.java)
+        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+        val resultCode = scheduler.schedule(info)
+        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+            Log.i(TAG, "Job scheduled")
+        } else {
+            Log.i(TAG, "Job scheduling failed")
+        }
+    }
+
+    private fun startPingJob() {
+
+        val componentName = ComponentName(this, SparPingJobService::class.java)
         val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             JobInfo.Builder(123, componentName)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
@@ -509,9 +586,76 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun stopJob() {
+    private fun startGetUserJob() {
+
+        val componentName = ComponentName(this, SparGetUserJobService::class.java)
+        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            JobInfo.Builder(321, componentName)
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setPeriodic((15 * 60 * 1000).toLong())
+                .setRequiresCharging(false)
+                .setPersisted(true)
+                .build()
+        } else {
+            TODO("VERSION.SDK_INT < P")
+        }
+
         val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-        scheduler.cancel(123)
+        val resultCode = scheduler.schedule(info)
+        if (resultCode == JobScheduler.RESULT_SUCCESS) {
+            Log.i(TAG, "Job scheduled")
+        } else {
+            Log.i(TAG, "Job scheduling failed")
+        }
+    }
+
+//    private fun stopGetOfflineJob() {
+//        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+//        scheduler.cancel(111)
+//        Log.i(TAG, "Job cancelled")
+//    }
+//
+//    private fun stopPingJob() {
+//        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+//        scheduler.cancel(123)
+//        Log.i(TAG, "Job cancelled")
+//    }
+//
+//    private fun stopGetUserJob() {
+//        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+//        scheduler.cancel(321)
+//        Log.i(TAG, "Job cancelled")
+//    }
+
+    private fun stopJob(jobId: Int) {
+        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
+        scheduler.cancel(jobId)
         Log.i(TAG, "Job cancelled")
     }
+//
+//    private fun fileToBase64(filePath: String?): String? {
+//        var base64File: String? = ""
+//        val file = File(filePath)
+//        try {
+//            FileInputStream(file).use { imageInFile ->
+//                // Reading a file from file system
+//                val fileData = ByteArray(file.length().toInt())
+//                imageInFile.read(fileData)
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                    base64File = Base64.getEncoder().encodeToString(fileData)
+//                }
+//            }
+//        } catch (e: FileNotFoundException) {
+//            println("File not found$e")
+//        } catch (ioe: IOException) {
+//            println("Exception while reading the file $ioe")
+//        }
+//        return base64File
+//    }
+//
+//    private fun stringToMD5(str: String): String {
+//        val md = MessageDigest.getInstance("MD5")
+//        return BigInteger(1, md.digest(str.toByteArray())).toString(16).padStart(32, '0')
+//    }
+
 }

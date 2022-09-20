@@ -45,23 +45,23 @@ class WorkerAdapter : RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder>() {
 
     class WorkerViewHolder(private var view: View) : RecyclerView.ViewHolder(view) {
 
-        private var id = view.findViewById<TextView>(R.id.tvId)
-        private var code = view.findViewById<TextView>(R.id.tvCode)
-        private var photo_path = view.findViewById<TextView>(R.id.tvPhotoPath)
-        private var photo = view.findViewById<TextView>(R.id.tvPhoto)
-        private var date_time = view.findViewById<TextView>(R.id.tvDateTime)
-        private var forwarded = view.findViewById<TextView>(R.id.tvForwarded)
+        private var controllerCode = view.findViewById<TextView>(R.id.tvControllerCode)
+        private var pin = view.findViewById<TextView>(R.id.tvPin)
+        private var dateTime = view.findViewById<TextView>(R.id.tvDateTime)
+        private var picture = view.findViewById<TextView>(R.id.tvPicture)
+        private var hash = view.findViewById<TextView>(R.id.tvHash)
+        private var photoName = view.findViewById<TextView>(R.id.tvPhotoName)
         private var photoPreview = view.findViewById<ImageView>(R.id.photoPreview)
         var delete = view.findViewById<TextView>(R.id.btnDelete)!!
 
         fun bindView(wrk: Worker) {
-            id.text = wrk.id.toString()
-            code.text = wrk.code
-            photo_path.text = wrk.photo_path
-            photo.text = wrk.photo
-            date_time.text = wrk.date_time
-            forwarded.text = wrk.forwarded
-            photoPreview.setImageBitmap(fileToBitmap(wrk.photo))
+            controllerCode.text = wrk.controller_code
+            pin.text = wrk.pin
+            dateTime.text = wrk.datetime
+            picture.text = "wrk.picture"
+            hash.text = wrk.hash
+            photoName.text = wrk.photo_name
+            photoPreview.setImageBitmap(fileToBitmap(wrk.photo_name))
         }
 
         private fun fileToBitmap(f: String): Bitmap? {

@@ -9,23 +9,21 @@ import android.database.sqlite.SQLiteOpenHelper
 import ge.mark.sparemployee.models.User
 import ge.mark.sparemployee.models.Worker
 
-class DbHelper(context: Context) :
-
-    SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION) {
+class DbHelper(context: Context) : SQLiteOpenHelper(context, DB_NAME, null, DB_VERSION) {
 
     companion object {
-        private const val DB_VERSION = 2
+        private const val DB_VERSION = 121
         private const val DB_NAME = "spar.db"
         private const val TABLE_NAME = "spar_table"
         private const val TABLE_USERS = "spar_users_table"
 
         // Table fields
-        private const val ID = "id"
-        private const val CODE = "code"
-        private const val PHOTO_PATH = "photo_path"
-        private const val PHOTO = "photo"
-        private const val DATE_TIME = "date_time"
-        private const val FORWARDED = "forwarded"
+        private const val CONTROLLER_CODE = "controller_code"
+        private const val PIN = "pin"
+        private const val DATETIME = "datetime"
+        private const val PICTURE = "picture"
+        private const val HASH = "hash"
+        private const val PHOTO_NAME = "photo_name"
 
         // Users table fields
         private const val FIRST_NAME = "first_name"
@@ -34,12 +32,12 @@ class DbHelper(context: Context) :
 
         private const val TABLE_STRUCTURE = ("CREATE TABLE IF NOT EXISTS " +
                 TABLE_NAME + " ("
-                + ID + " INTEGER PRIMARY KEY, "
-                + CODE + " TEXT,"
-                + PHOTO_PATH + " TEXT,"
-                + PHOTO + " TEXT,"
-                + DATE_TIME + " TEXT,"
-                + FORWARDED + " TEXT)"
+                + CONTROLLER_CODE + " TEXT, "
+                + PIN + " TEXT,"
+                + DATETIME + " TEXT,"
+                + PICTURE + " TEXT,"
+                + HASH + " TEXT,"
+                + PHOTO_NAME + " TEXT)"
                 )
         private const val DROP_TABLE = "DROP TABLE IF EXISTS $TABLE_NAME"
 
@@ -88,7 +86,7 @@ class DbHelper(context: Context) :
         val pass_code: String
         try {
             cursor = db.rawQuery(selectQuery, null)
-            if (cursor.getCount() > 0) {
+            if (cursor.count > 0) {
                 cursor.moveToFirst()
                 first_name = cursor.getString(cursor.getColumnIndex("first_name"))
                 last_name = cursor.getString(cursor.getColumnIndex("last_name"))
@@ -124,67 +122,86 @@ class DbHelper(context: Context) :
             return ArrayList()
         }
 
-        var id: Long
-        var code: String
-        var photo_path: String
-        var photo: String
-        var date_time: String
-        var forwarded: String
+        var controller_code: String
+        var pin: String
+        var datetime: String
+        var picture: String
+        var hash: String
+        var photo_name: String
 
         if (cursor.moveToFirst()) {
             do {
-                id = cursor.getLong(cursor.getColumnIndex("id"))
-                code = cursor.getString(cursor.getColumnIndex("code"))
-                photo_path = cursor.getString(cursor.getColumnIndex("photo_path"))
-                photo = cursor.getString(cursor.getColumnIndex("photo"))
-                date_time = cursor.getString(cursor.getColumnIndex("date_time"))
-                forwarded = cursor.getString(cursor.getColumnIndex("forwarded"))
+                controller_code = cursor.getString(cursor.getColumnIndex("controller_code"))
+                pin = cursor.getString(cursor.getColumnIndex("pin"))
+                datetime = cursor.getString(cursor.getColumnIndex("datetime"))
+                picture = cursor.getString(cursor.getColumnIndex("picture"))
+                hash = cursor.getString(cursor.getColumnIndex("hash"))
+                photo_name = cursor.getString(cursor.getColumnIndex("photo_name"))
 
                 val wrk = Worker(
-                    id = id,
-                    code = code,
-                    photo_path = photo_path,
-                    photo = photo,
-                    date_time = date_time,
-                    forwarded = forwarded
+                    controller_code = controller_code,
+                    pin = pin,
+                    datetime = datetime,
+                    picture = picture,
+                    hash = hash,
+                    photo_name = photo_name
                 )
                 wrkList.add(wrk)
-            } while (cursor.moveToNext())
+                cursor.moveToNext()
+            } while (!cursor.isAfterLast)
         }
+        cursor.close()
+        db.close()
         return wrkList
     }
 
-    fun insertWorker(worker: Worker): Long {
+    fun insertWorker(worker: Worker): Boolean {
 
         val db = this.writableDatabase
+        db.beginTransaction()
+        try {
+            val cv = ContentValues()
+            cv.put(CONTROLLER_CODE, worker.controller_code)
+            cv.put(PIN, worker.pin)
+            cv.put(DATETIME, worker.datetime)
+            cv.put(PICTURE, worker.picture)
+            cv.put(HASH, worker.hash)
+            cv.put(PHOTO_NAME, worker.photo_name)
 
-        val cv = ContentValues()
-        cv.put(ID, worker.id)
-        cv.put(CODE, worker.code)
-        cv.put(PHOTO_PATH, worker.photo_path)
-        cv.put(PHOTO, worker.photo)
-        cv.put(DATE_TIME, worker.date_time)
-        cv.put(FORWARDED, worker.forwarded)
+            val result = db.insert(TABLE_NAME, null, cv)
 
-        val success = db.insert(TABLE_NAME, null, cv)
-        db.close()
-        return success
+            return if (result.equals(0)) {
+                false;
+            } else {
+                db.setTransactionSuccessful();
+                true;
+            }
+        } finally {
+            db.endTransaction()
+            db.close()
+        }
     }
 
-    fun deleteWorker(photo: String) {
+    fun deleteWorker(hash: String) {
         val db = this.writableDatabase
 
         val cv = ContentValues()
-        cv.put(PHOTO, photo)
-        db.execSQL("DELETE FROM $TABLE_NAME WHERE photo ='$photo'")
+        cv.put(HASH, hash)
+        db.execSQL("DELETE FROM $TABLE_NAME WHERE hash ='$hash'")
         db.close()
     }
 
     fun deleteAllWorkers() {
         val db = this.writableDatabase
 
-        val cv = ContentValues()
         db.execSQL("DELETE FROM $TABLE_NAME")
+        db.close()
+    }
+
+    fun deleteAllUsers() {
+        val db = this.writableDatabase
+
+        db.execSQL("DELETE FROM $TABLE_USERS")
         db.close()
     }
 }
