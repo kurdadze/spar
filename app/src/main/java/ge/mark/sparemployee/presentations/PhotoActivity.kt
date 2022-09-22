@@ -1,4 +1,4 @@
-package ge.mark.sparemployee
+package ge.mark.sparemployee.presentations
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import ge.mark.sparemployee.R
 import ge.mark.sparemployee.adapters.WorkerAdapter
 import ge.mark.sparemployee.databinding.ActivityPhotoBinding
 import ge.mark.sparemployee.helpers.DbHelper

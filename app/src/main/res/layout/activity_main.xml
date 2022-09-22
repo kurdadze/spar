@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:background="@color/green"
+    tools:context=".presentations.MainActivity">
 
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
@@ -20,26 +21,29 @@
         android:id="@+id/appCompatImageView"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:adjustViewBounds="true"
         android:layout_marginTop="10dp"
+        android:adjustViewBounds="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/sparlogo1" />
 
-    <TextView
-        android:id="@+id/toastTextView"
-        android:layout_width="match_parent"
-        android:layout_height="150dp"
-        android:gravity="center"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textSize="40sp"
-        app:layout_constraintBottom_toTopOf="@+id/image_capture_button"
+    <android.widget.TextClock
+        android:id="@+id/hk_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:format12Hour="HH:mm:ss"
+        android:format24Hour="@null"
+        android:padding="20dp"
+        android:textStyle="bold"
+        android:textColor="#fff"
+        android:textSize="30sp"
+        android:timeZone="GMT+0400"
+        android:text="24:00"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/viewFinder" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageButton
+    <android.widget.Button
         android:id="@+id/image_capture_button"
         android:layout_width="92dp"
         android:layout_height="92dp"
@@ -47,6 +51,7 @@
         android:background="@drawable/ic_shutter"
         android:scaleType="fitCenter"
         android:visibility="gone"
+        android:textSize="30sp"
         app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="@+id/viewFinder" />
@@ -55,15 +60,27 @@
         android:id="@+id/textViewNumber"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/edittext_border"
+        android:backgroundTint="@color/white"
         android:hint="აკრიფეთ კოდი"
         android:maxLength="5"
         android:padding="5dp"
         android:textAlignment="center"
         android:textSize="35sp"
-        android:background="@drawable/edittext_border"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/viewFinder" />
+
+    <TextView
+        android:id="@+id/toastTextView"
+        android:layout_width="match_parent"
+        android:layout_height="420dp"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:textSize="40sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewNumber" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/number1"
@@ -181,18 +198,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/number6" />
 
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/clearAll"
-        android:layout_width="120dp"
-        android:layout_height="70dp"
-        android:layout_marginTop="28dp"
-        android:background="@drawable/btn_shape_rectangle"
-        android:scaleType="fitCenter"
-        android:text="Clear"
-        android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/number8" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/number0"
@@ -208,18 +213,32 @@
         app:layout_constraintTop_toBottomOf="@+id/number7" />
 
     <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/clearAll"
+        android:layout_width="120dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/btn_shape_rectangle"
+        android:backgroundTint="@color/white"
+        android:scaleType="fitCenter"
+        android:text="Clear"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/number8" />
+
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/numberBackSpace"
         android:layout_width="120dp"
         android:layout_height="70dp"
         android:layout_marginTop="30dp"
-        android:layout_marginEnd="25dp"
         android:background="@drawable/btn_shape_rectangle"
+        android:backgroundTint="@color/white"
         android:scaleType="fitCenter"
         android:text="DEL"
         android:textSize="30sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/number0"
+        app:layout_constraintHorizontal_bias="0.75"
+        app:layout_constraintStart_toEndOf="@+id/clearAll"
         app:layout_constraintTop_toBottomOf="@+id/number9" />
 
     <Button
@@ -256,13 +275,13 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
         android:text="\u00a9 self.ge 2022"
-        android:textColor="@color/self_blue"
+        android:textColor="@color/white"
         android:textSize="18sp"
-        android:layout_marginTop="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/clearAll" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!--    -->
     <!--    <androidx.constraintlayout.widget.Guideline-->

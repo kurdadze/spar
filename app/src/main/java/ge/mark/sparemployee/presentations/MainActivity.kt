@@ -1,4 +1,4 @@
-package ge.mark.sparemployee
+package ge.mark.sparemployee.presentations
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -29,6 +29,7 @@ import androidx.camera.video.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
+import ge.mark.sparemployee.R
 import ge.mark.sparemployee.databinding.ActivityMainBinding
 import ge.mark.sparemployee.helpers.DbHelper
 import ge.mark.sparemployee.helpers.Network
@@ -148,6 +149,36 @@ class MainActivity : AppCompatActivity() {
         }, 20000)
     }
 
+    private fun showHideButtons(state: String) {
+        if (state == "show") {
+            viewBinding.number0.visibility = VISIBLE
+            viewBinding.number1.visibility = VISIBLE
+            viewBinding.number2.visibility = VISIBLE
+            viewBinding.number3.visibility = VISIBLE
+            viewBinding.number4.visibility = VISIBLE
+            viewBinding.number5.visibility = VISIBLE
+            viewBinding.number6.visibility = VISIBLE
+            viewBinding.number7.visibility = VISIBLE
+            viewBinding.number8.visibility = VISIBLE
+            viewBinding.number9.visibility = VISIBLE
+            viewBinding.clearAll.visibility = VISIBLE
+            viewBinding.numberBackSpace.visibility = VISIBLE
+        } else {
+            viewBinding.number0.visibility = GONE
+            viewBinding.number1.visibility = GONE
+            viewBinding.number2.visibility = GONE
+            viewBinding.number3.visibility = GONE
+            viewBinding.number4.visibility = GONE
+            viewBinding.number5.visibility = GONE
+            viewBinding.number6.visibility = GONE
+            viewBinding.number7.visibility = GONE
+            viewBinding.number8.visibility = GONE
+            viewBinding.number9.visibility = GONE
+            viewBinding.clearAll.visibility = GONE
+            viewBinding.numberBackSpace.visibility = GONE
+        }
+    }
+
     @SuppressLint("SetTextI18n")
     private fun defNumber(str: String) {
         val tmpTextViewNumber = viewBinding.textViewNumber
@@ -161,17 +192,32 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("SetTextI18n")
     private fun checkEmployee(code: String) {
+        showHideButtons("hide")
         viewBinding.toastTextView.text = ""
         val userCode: User = dbHelper.checkUsers(code)
         if (userCode.pass_code == viewBinding.textViewNumber.text.toString()) {
             viewBinding.toastTextView.setBackgroundColor(getColor(R.color.white))
             viewBinding.toastTextView.setTextColor(getColor(R.color.green))
-            viewBinding.toastTextView.text = "მოგესალმებით ${userCode.first_name} ${userCode.last_name}"
+            viewBinding.toastTextView.text =
+                "მოგესალმებით ${userCode.first_name} ${userCode.last_name}/n გთხოვთ გადაიღოთ ფოტო"
+            val timer = 11
+
+            object : CountDownTimer(11000, 1000) {
+                override fun onTick(millisUntilFinished: Long) {
+                    viewBinding.imageCaptureButton.text = (millisUntilFinished / 1000).toString()
+                }
+
+                override fun onFinish() {
+                    viewBinding.imageCaptureButton.text = ""
+                }
+            }.start()
+
             Handler(Looper.getMainLooper()).postDelayed({
                 viewBinding.toastTextView.setBackgroundColor(0x00000000)
                 viewBinding.toastTextView.text = ""
                 viewBinding.textViewNumber.text = ""
-            }, 10000)
+                showHideButtons("show")
+            }, (timer * 1000).toLong())
         } else {
             viewBinding.toastTextView.setBackgroundColor(getColor(R.color.red))
             viewBinding.toastTextView.setTextColor(getColor(R.color.white))
@@ -180,6 +226,7 @@ class MainActivity : AppCompatActivity() {
                 viewBinding.toastTextView.setBackgroundColor(0x00000000)
                 viewBinding.toastTextView.text = ""
                 viewBinding.textViewNumber.text = ""
+                showHideButtons("show")
             }, 2000)
         }
     }
@@ -282,6 +329,7 @@ class MainActivity : AppCompatActivity() {
                                 photo_name = worker.photo_name
                             )
                         }
+                        showHideButtons("hide")
                         viewBinding.textViewNumber.text = ""
                         viewBinding.toastTextView.setBackgroundColor(getColor(R.color.green))
                         viewBinding.toastTextView.setTextColor(getColor(R.color.white))
@@ -289,6 +337,7 @@ class MainActivity : AppCompatActivity() {
                         Handler(Looper.getMainLooper()).postDelayed({
                             viewBinding.toastTextView.text = ""
                             viewBinding.toastTextView.setBackgroundColor(0x00000000)
+                            showHideButtons("show")
                         }, 2000)
                     }
                 }

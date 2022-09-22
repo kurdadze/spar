@@ -33,6 +33,7 @@ android {
     buildFeatures {
         viewBinding true
     }
+    namespace 'ge.mark.sparemployee'
 }
 
 dependencies {
