@@ -15,7 +15,6 @@ import java.io.File
 
 object ApiCalls {
 
-
     fun getUsers(context: Context) {
         val sysHelper = SysHelper(context = context)
         val dbHelper = DbHelper(context = context)
@@ -97,7 +96,8 @@ object ApiCalls {
                 val resCode: Int? = response.code()
                 val apiResponse: JsonObject? = response.body()
                 dbHelper.deleteWorker(hash)
-                val filePathImg = Environment.getExternalStoragePublicDirectory("Pictures/Spar").toString()
+                val filePathImg =
+                    Environment.getExternalStoragePublicDirectory("Pictures/Spar").toString()
                 val file = File("$filePathImg/$photo_name")
                 file.delete()
                 Log.v("retrofit", "call success")

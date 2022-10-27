@@ -56,7 +56,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var myReceiver: BroadcastReceiver
     private lateinit var viewBinding: ActivityMainBinding
     private lateinit var cameraExecutor: ExecutorService
-
+    private lateinit var yourCountDownTimer: CountDownTimer
+    private val handler = Handler(Looper.getMainLooper())
 
 //    val CAMERA_IMAGE_BUCKET_NAME = (Environment.getExternalStorageDirectory().toString() + "/DCIM/Camera")
 //    val CAMERA_IMAGE_BUCKET_ID = getBucketId(CAMERA_IMAGE_BUCKET_NAME)
@@ -70,10 +71,22 @@ class MainActivity : AppCompatActivity() {
     private var videoCapture: VideoCapture<Recorder>? = null
     private var recording: Recording? = null
 
-    @SuppressLint("SimpleDateFormat")
+    @SuppressLint("SimpleDateFormat", "SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        sysHelper = SysHelper(this)
+        dbHelper = DbHelper(this)
+
+        yourCountDownTimer = object : CountDownTimer(11000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                viewBinding.imageCaptureButton.text = (millisUntilFinished / 1000).toString()
+            }
+            override fun onFinish() {
+                viewBinding.imageCaptureButton.text = ""
+            }
+        }.start()
 
         myReceiver = MyReceiver()
         IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION).also {
@@ -83,11 +96,10 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        sysHelper = SysHelper(this)
-        dbHelper = DbHelper(this)
-
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+
+        viewBinding.textDeviceId.text = "DID: "+ sysHelper.getDeviceID()
 
         if (allPermissionsGranted()) {
             startCamera()
@@ -97,6 +109,15 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        viewBinding.hideMessage.setOnClickListener {
+            viewBinding.textViewNumber.text = ""
+            viewBinding.toastTextView.text = ""
+            viewBinding.toastTextView.setBackgroundColor(0x00000000)
+            viewBinding.hideMessage.visibility = GONE;
+            yourCountDownTimer.cancel()
+            handler.removeCallbacksAndMessages(null)
+            showHideButtons("show")
+        }
         viewBinding.number0.setOnClickListener { defNumber("0") }
         viewBinding.number1.setOnClickListener { defNumber("1") }
         viewBinding.number2.setOnClickListener { defNumber("2") }
@@ -131,10 +152,10 @@ class MainActivity : AppCompatActivity() {
 
             override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
                 if (count == 5) {
-                    viewBinding.imageCaptureButton.visibility = VISIBLE;
                     checkEmployee(s.toString())
                 } else {
                     viewBinding.imageCaptureButton.visibility = GONE;
+                    viewBinding.hideMessage.visibility = GONE;
                     viewBinding.toastTextView.setBackgroundColor(0x00000000)
                 }
             }
@@ -196,33 +217,31 @@ class MainActivity : AppCompatActivity() {
         viewBinding.toastTextView.text = ""
         val userCode: User = dbHelper.checkUsers(code)
         if (userCode.pass_code == viewBinding.textViewNumber.text.toString()) {
+            viewBinding.imageCaptureButton.visibility = VISIBLE;
             viewBinding.toastTextView.setBackgroundColor(getColor(R.color.white))
             viewBinding.toastTextView.setTextColor(getColor(R.color.green))
             viewBinding.toastTextView.text =
-                "მოგესალმებით ${userCode.first_name} ${userCode.last_name}/n გთხოვთ გადაიღოთ ფოტო"
+                "მოგესალმებით ${userCode.first_name} ${userCode.last_name}\n გთხოვთ, გადაიღოთ ფოტო."
+            viewBinding.hideMessage.visibility = VISIBLE;
+
+            yourCountDownTimer.start()
+
             val timer = 11
 
-            object : CountDownTimer(11000, 1000) {
-                override fun onTick(millisUntilFinished: Long) {
-                    viewBinding.imageCaptureButton.text = (millisUntilFinished / 1000).toString()
-                }
-
-                override fun onFinish() {
-                    viewBinding.imageCaptureButton.text = ""
-                }
-            }.start()
-
-            Handler(Looper.getMainLooper()).postDelayed({
+            handler.postDelayed({
+                viewBinding.hideMessage.visibility = GONE;
                 viewBinding.toastTextView.setBackgroundColor(0x00000000)
                 viewBinding.toastTextView.text = ""
                 viewBinding.textViewNumber.text = ""
                 showHideButtons("show")
             }, (timer * 1000).toLong())
         } else {
+            viewBinding.imageCaptureButton.visibility = GONE;
             viewBinding.toastTextView.setBackgroundColor(getColor(R.color.red))
             viewBinding.toastTextView.setTextColor(getColor(R.color.white))
             viewBinding.toastTextView.text = "კოდი არასწორია"
             Handler(Looper.getMainLooper()).postDelayed({
+                viewBinding.hideMessage.visibility = GONE;
                 viewBinding.toastTextView.setBackgroundColor(0x00000000)
                 viewBinding.toastTextView.text = ""
                 viewBinding.textViewNumber.text = ""
@@ -234,11 +253,13 @@ class MainActivity : AppCompatActivity() {
     private fun clearAll() {
         viewBinding.textViewNumber.text = ""
         viewBinding.toastTextView.text = ""
+        viewBinding.hideMessage.visibility = GONE;
     }
 
     private fun deleteNumber() {
         val tmpTextViewNumber = viewBinding.textViewNumber.text
         viewBinding.toastTextView.text = ""
+        viewBinding.hideMessage.visibility = GONE;
         if (tmpTextViewNumber.isNotEmpty()) {
             val s = tmpTextViewNumber.subSequence(0, tmpTextViewNumber.length - 1)
             viewBinding.textViewNumber.text = s
@@ -337,6 +358,8 @@ class MainActivity : AppCompatActivity() {
                         Handler(Looper.getMainLooper()).postDelayed({
                             viewBinding.toastTextView.text = ""
                             viewBinding.toastTextView.setBackgroundColor(0x00000000)
+                            viewBinding.hideMessage.visibility = GONE;
+                            handler.removeCallbacksAndMessages(null)
                             showHideButtons("show")
                         }, 2000)
                     }
@@ -613,7 +636,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startPingJob() {
-
         val componentName = ComponentName(this, SparPingJobService::class.java)
         val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             JobInfo.Builder(123, componentName)
@@ -636,7 +658,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startGetUserJob() {
-
         val componentName = ComponentName(this, SparGetUserJobService::class.java)
         val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             JobInfo.Builder(321, componentName)
@@ -658,53 +679,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    private fun stopGetOfflineJob() {
-//        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-//        scheduler.cancel(111)
-//        Log.i(TAG, "Job cancelled")
-//    }
-//
-//    private fun stopPingJob() {
-//        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-//        scheduler.cancel(123)
-//        Log.i(TAG, "Job cancelled")
-//    }
-//
-//    private fun stopGetUserJob() {
-//        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-//        scheduler.cancel(321)
-//        Log.i(TAG, "Job cancelled")
-//    }
-
     private fun stopJob(jobId: Int) {
         val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
         scheduler.cancel(jobId)
         Log.i(TAG, "Job cancelled")
     }
-//
-//    private fun fileToBase64(filePath: String?): String? {
-//        var base64File: String? = ""
-//        val file = File(filePath)
-//        try {
-//            FileInputStream(file).use { imageInFile ->
-//                // Reading a file from file system
-//                val fileData = ByteArray(file.length().toInt())
-//                imageInFile.read(fileData)
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                    base64File = Base64.getEncoder().encodeToString(fileData)
-//                }
-//            }
-//        } catch (e: FileNotFoundException) {
-//            println("File not found$e")
-//        } catch (ioe: IOException) {
-//            println("Exception while reading the file $ioe")
-//        }
-//        return base64File
-//    }
-//
-//    private fun stringToMD5(str: String): String {
-//        val md = MessageDigest.getInstance("MD5")
-//        return BigInteger(1, md.digest(str.toByteArray())).toString(16).padStart(32, '0')
-//    }
-
 }

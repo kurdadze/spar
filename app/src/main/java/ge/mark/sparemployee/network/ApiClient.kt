@@ -8,7 +8,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-
 object ApiClient {
     private val retrofit: Retrofit
         get() {
@@ -30,7 +29,7 @@ object ApiClient {
 
             return Retrofit.Builder()
                 .addConverterFactory(GsonConverterFactory.create(gson))
-                .baseUrl("https://td.self.ge/")
+                .baseUrl("https://spar.self.ge/")
                 .client(httpClient.build())
                 .build()
         }

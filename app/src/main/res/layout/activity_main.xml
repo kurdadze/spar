@@ -74,13 +74,28 @@
     <TextView
         android:id="@+id/toastTextView"
         android:layout_width="match_parent"
-        android:layout_height="420dp"
+        android:layout_height="320dp"
         android:gravity="center"
         android:textColor="@color/white"
         android:textSize="40sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textViewNumber" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/hideMessage"
+        android:layout_width="200dp"
+        android:layout_height="70dp"
+        android:layout_marginTop="28dp"
+        android:background="@drawable/btn_shape_rectangle"
+        android:backgroundTint="@color/white"
+        android:scaleType="fitCenter"
+        android:visibility="gone"
+        android:text="გაუქმება"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/toastTextView" />
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/number1"
@@ -272,16 +287,28 @@
         app:layout_constraintEnd_toEndOf="@+id/viewFinder" />
 
     <TextView
+        android:id="@+id/textDeviceId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:layout_marginStart="20dp"
+        android:text="DID: "
+        android:textColor="@color/white"
+        android:textSize="22sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
-        android:text="\u00a9 self.ge 2022"
+        android:layout_marginEnd="20dp"
+        android:text="\u00a9 self.ge"
         android:textColor="@color/white"
-        android:textSize="18sp"
+        android:textSize="22sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!--    -->
     <!--    <androidx.constraintlayout.widget.Guideline-->

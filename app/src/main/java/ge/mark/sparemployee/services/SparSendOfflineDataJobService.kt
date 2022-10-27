@@ -31,7 +31,6 @@ class SparSendOfflineDataJobService : JobService() {
     }
 
     private fun doBackgroundWork(params: JobParameters) {
-        val sysHelper = SysHelper(context = applicationContext)
         val dbHelper = DbHelper(context = applicationContext)
         Thread(Runnable {
             var i = 0

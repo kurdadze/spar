@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import android.widget.Toast
 import ge.mark.sparemployee.network.NetworkUtil.getConnectivityStatusString
 
 class MyReceiver : BroadcastReceiver() {

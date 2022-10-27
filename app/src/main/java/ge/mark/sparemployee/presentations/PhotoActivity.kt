@@ -15,7 +15,6 @@ import ge.mark.sparemployee.helpers.DbHelper
 import ge.mark.sparemployee.models.User
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.util.*
 
 
 class PhotoActivity : AppCompatActivity() {
@@ -40,16 +39,13 @@ class PhotoActivity : AppCompatActivity() {
         viewBinding.closeIntent.setOnClickListener { finish() }
         viewBinding.getAllWorker.setOnClickListener { getAllWorker() }
         viewBinding.insert.setOnClickListener {
-//            val timeStamp = SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(Date())
-//            Toast.makeText(this, timeStamp, Toast.LENGTH_SHORT).show()
-
             insertNewUser(User(first_name = "სოსო", last_name = "ქურდაძე", pass_code = "11111"))
             insertNewUser(User(first_name = "ცოტნე", last_name = "ქურდაძე", pass_code = "22222"))
             insertNewUser(User(first_name = "თემურ", last_name = "კევლიშვილი", pass_code = "33333"))
         }
 
-        viewBinding.startJob.setOnClickListener {  }
-        viewBinding.stopJob.setOnClickListener {  }
+        viewBinding.startJob.setOnClickListener { }
+        viewBinding.stopJob.setOnClickListener { }
 
         recyclerView = findViewById(R.id.recycleView)
         initRecyclerView()

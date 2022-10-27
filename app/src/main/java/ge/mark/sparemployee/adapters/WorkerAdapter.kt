@@ -25,7 +25,7 @@ class WorkerAdapter : RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder>() {
         notifyDataSetChanged()
     }
 
-    fun setOnClickDeleteItem(callback:(Worker) -> Unit) {
+    fun setOnClickDeleteItem(callback: (Worker) -> Unit) {
         this.onClickDeleteItem = callback
     }
 

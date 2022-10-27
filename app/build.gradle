@@ -5,6 +5,7 @@ plugins {
 }
 
 android {
+    namespace 'ge.mark.sparemployee'
     compileSdk 32
 
     defaultConfig {
@@ -33,7 +34,6 @@ android {
     buildFeatures {
         viewBinding true
     }
-    namespace 'ge.mark.sparemployee'
 }
 
 dependencies {
