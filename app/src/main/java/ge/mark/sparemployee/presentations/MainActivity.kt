@@ -7,7 +7,7 @@ import android.app.job.JobScheduler
 import android.content.*
 import android.content.pm.PackageManager
 import android.icu.text.SimpleDateFormat
-import android.net.wifi.WifiManager
+import android.net.ConnectivityManager
 import android.os.*
 import android.provider.MediaStore
 import android.provider.MediaStore.Images
@@ -49,11 +49,11 @@ import java.util.concurrent.Executors
 
 //typealias LumaListener = (luma: Double) -> Unit
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListener {
 
     private lateinit var dbHelper: DbHelper
     private lateinit var sysHelper: SysHelper
-    private lateinit var myReceiver: BroadcastReceiver
+//    private lateinit var myReceiver: BroadcastReceiver
     private lateinit var viewBinding: ActivityMainBinding
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var yourCountDownTimer: CountDownTimer
@@ -83,23 +83,33 @@ class MainActivity : AppCompatActivity() {
             override fun onTick(millisUntilFinished: Long) {
                 viewBinding.imageCaptureButton.text = (millisUntilFinished / 1000).toString()
             }
+
             override fun onFinish() {
                 viewBinding.imageCaptureButton.text = ""
             }
         }.start()
 
-        myReceiver = MyReceiver()
-        IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION).also {
-            registerReceiver(
-                myReceiver,
-                it
-            )
-        }
+
+        registerReceiver(MyReceiver(), IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
+
+//        myReceiver = MyReceiver()
+//        IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED).also {
+//            registerReceiver(
+//                myReceiver,
+//                it
+//            )
+//        }
+//        IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION).also {
+//            registerReceiver(
+//                myReceiver,
+//                it
+//            )
+//        }
 
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
 
-        viewBinding.textDeviceId.text = "DID: "+ sysHelper.getDeviceID()
+        viewBinding.textDeviceId.text = "DID: " + sysHelper.getDeviceID()
 
         if (allPermissionsGranted()) {
             startCamera()
@@ -536,6 +546,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        MyReceiver.connectivityReceiverListener = this
         Log.d("qq", "Resume")
     }
 
@@ -548,9 +559,10 @@ class MainActivity : AppCompatActivity() {
         stopJob(111)
     }
 
-//    override fun onStop() {
-//        super.onStop()
-//    }
+    override fun onStop() {
+        super.onStop()
+        unregisterReceiver(MyReceiver())
+    }
 
     override fun onPause() {
         super.onPause()
@@ -683,5 +695,13 @@ class MainActivity : AppCompatActivity() {
         val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
         scheduler.cancel(jobId)
         Log.i(TAG, "Job cancelled")
+    }
+
+    override fun onNetworkConnectionChanged(isConnected: Boolean) {
+//        if (!isConnected) {
+//            Toast.makeText(applicationContext, "Mode OFFLINE", Toast.LENGTH_LONG).show()
+//        } else {
+//            Toast.makeText(applicationContext, "Mode ONLINE", Toast.LENGTH_LONG).show()
+//        }
     }
 }
