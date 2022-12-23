@@ -7,7 +7,7 @@ plugins {
 android {
     signingConfigs {
         debug {
-            storeFile file('C:\\MyFolder\\Projects\\android\\keys\\spargeorgia.jks')
+//            storeFile file('C:\\MyFolder\\Projects\\android\\keys\\spargeorgia.jks')
             keyAlias 'sparge0'
             keyPassword 'DSGt45@326hjfd5'
             storePassword 'DSGt45@326hjfd5'
