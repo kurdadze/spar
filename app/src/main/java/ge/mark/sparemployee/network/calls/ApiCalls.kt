@@ -3,12 +3,13 @@ package ge.mark.sparemployee.network.calls
 import android.content.Context
 import android.os.Environment
 import android.util.Log
-import android.widget.Toast
 import com.google.gson.JsonObject
 import ge.mark.sparemployee.helpers.DbHelper
 import ge.mark.sparemployee.helpers.SysHelper
 import ge.mark.sparemployee.models.User
 import ge.mark.sparemployee.network.ApiClient
+import ge.mark.sparemployee.presentations.MainActivity
+import ge.mark.sparemployee.presentations.SparApplication
 import ge.mark.sparemployee.utils.NetworkUtil
 import retrofit2.Call
 import retrofit2.Callback
@@ -47,8 +48,6 @@ object ApiCalls {
                 }
 
             })
-        } else {
-            Toast.makeText(context, "Get users failure", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -65,16 +64,19 @@ object ApiCalls {
             pingCall?.enqueue(object : Callback<JsonObject> {
                 override fun onFailure(call: Call<JsonObject>, t: Throwable) {
                     Log.v("retrofit", "call failed")
+                    SparApplication.pingState = false
                 }
 
                 override fun onResponse(call: Call<JsonObject>, response: Response<JsonObject>) {
-                    val resCode: Int? = response.code()
+                    val resCode = response.code()
+                    SparApplication.pingState = true
+                    if (resCode == 400) {
+                        SparApplication.pingState = false
+                    }
                     val apiResponse: JsonObject? = response.body()
                     Log.v("retrofit", "call success")
                 }
             })
-        } else {
-            Toast.makeText(context, "Ping failure", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -114,8 +116,6 @@ object ApiCalls {
                     Log.v("retrofit", "call success")
                 }
             })
-        } else {
-            Toast.makeText(context, "Send data to server failure", Toast.LENGTH_SHORT).show()
         }
     }
 

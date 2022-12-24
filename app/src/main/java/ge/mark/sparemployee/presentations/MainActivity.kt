@@ -29,6 +29,7 @@ import androidx.camera.video.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
+import com.google.gson.JsonObject
 import ge.mark.sparemployee.R
 import ge.mark.sparemployee.databinding.ActivityMainBinding
 import ge.mark.sparemployee.helpers.DbHelper
@@ -36,11 +37,16 @@ import ge.mark.sparemployee.helpers.Network
 import ge.mark.sparemployee.helpers.SysHelper
 import ge.mark.sparemployee.models.User
 import ge.mark.sparemployee.models.Worker
+import ge.mark.sparemployee.network.ApiClient
 import ge.mark.sparemployee.network.calls.ApiCalls
 import ge.mark.sparemployee.services.MyReceiver
 import ge.mark.sparemployee.services.SparGetUserJobService
 import ge.mark.sparemployee.services.SparPingJobService
 import ge.mark.sparemployee.services.SparSendOfflineDataJobService
+import ge.mark.sparemployee.utils.NetworkUtil
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.io.File
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -53,7 +59,8 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
 
     private lateinit var dbHelper: DbHelper
     private lateinit var sysHelper: SysHelper
-//    private lateinit var myReceiver: BroadcastReceiver
+
+    //    private lateinit var myReceiver: BroadcastReceiver
     private lateinit var viewBinding: ActivityMainBinding
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var yourCountDownTimer: CountDownTimer
@@ -178,6 +185,14 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
             startGetUserJob()
             startGetOfflineJob()
         }, 20000)
+
+
+        Thread(kotlinx.coroutines.Runnable {
+            do {
+                ping(context = applicationContext)
+                Thread.sleep(20000)
+            } while (1 == 1)
+        }).start()
     }
 
     private fun showHideButtons(state: String) {
@@ -539,7 +554,7 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
     override fun onRestart() {
         super.onRestart()
         Log.d("qq", "Restart")
-        startPingJob()
+//        startPingJob()
         startGetUserJob()
         startGetOfflineJob()
     }
@@ -554,7 +569,7 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
         super.onDestroy()
         cameraExecutor.shutdown()
         dbHelper.close()
-        stopJob(123)
+//        stopJob(123)
         stopJob(321)
         stopJob(111)
     }
@@ -566,7 +581,7 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
 
     override fun onPause() {
         super.onPause()
-        stopJob(123)
+//        stopJob(123)
         stopJob(321)
         stopJob(111)
     }
@@ -611,6 +626,7 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
 //    }
 
     companion object {
+
         private const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
@@ -698,10 +714,43 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
     }
 
     override fun onNetworkConnectionChanged(isConnected: Boolean) {
-//        if (!isConnected) {
-//            Toast.makeText(applicationContext, "Mode OFFLINE", Toast.LENGTH_LONG).show()
-//        } else {
-//            Toast.makeText(applicationContext, "Mode ONLINE", Toast.LENGTH_LONG).show()
-//        }
+        if (!isConnected) {
+            viewBinding.networkStatus.visibility = VISIBLE
+            viewBinding.unableConnectServer.visibility = VISIBLE
+        } else {
+            viewBinding.networkStatus.visibility = GONE
+            viewBinding.unableConnectServer.visibility = GONE
+        }
+    }
+
+    private fun ping(context: Context) {
+        if (NetworkUtil.isNetworkAvailable(context = context)) {
+            val sysHelper = SysHelper(context = context)
+            val pingCall = ApiClient.getService()
+                ?.ping(
+                    CONTROLLER_CODE = sysHelper.getDeviceID(),
+                    CONTROLLER_MODEL = "Tablet",
+                    CONTROLLER_TIME = sysHelper.getDateTimeNow()
+                )
+
+            pingCall?.enqueue(object : Callback<JsonObject> {
+                override fun onFailure(call: Call<JsonObject>, t: Throwable) {
+                    viewBinding.networkStatus.visibility = VISIBLE
+                    viewBinding.unableConnectServer.visibility = VISIBLE
+                }
+
+                override fun onResponse(call: Call<JsonObject>, response: Response<JsonObject>) {
+                    val resCode = response.code()
+                    if (resCode == 200) {
+                        viewBinding.networkStatus.visibility = GONE
+                        viewBinding.unableConnectServer.visibility = GONE
+                    } else {
+                        viewBinding.networkStatus.visibility = VISIBLE
+                        viewBinding.unableConnectServer.visibility = VISIBLE
+                    }
+                    val apiResponse: JsonObject? = response.body()
+                }
+            })
+        }
     }
 }

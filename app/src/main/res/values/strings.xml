@@ -4,4 +4,5 @@
     <string name="start_capture">ვიდეო დაწყება</string>
     <string name="stop_capture">ვიდეო დასრულება</string>
     <string name="file">ფაილი</string>
+    <string name="unable_connect_server">ვერ ხერხდება სერვერთან დაკავშირება</string>
 </resources>
