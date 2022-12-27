@@ -29,30 +29,28 @@
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/networkStatus"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="10dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:adjustViewBounds="true"
-        app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:visibility="visible"
+        android:layout_marginTop="35dp"
+        app:layout_constraintEnd_toStartOf="@+id/hk_time"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/cloud_disconnect_icon"
-        android:visibility="gone"/>
+        app:srcCompat="@drawable/green_ball" />
 
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/unableConnectServer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="@string/unable_connect_server"
-        android:textColor="@color/white"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/networkStatus"
-        android:visibility="gone"/>
+<!--    <androidx.appcompat.widget.AppCompatTextView-->
+<!--        android:id="@+id/unableConnectServer"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:gravity="center"-->
+<!--        android:text="@string/unable_connect_server"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:textSize="20sp"-->
+<!--        android:textStyle="bold"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/networkStatus"-->
+<!--        android:visibility="visible"/>-->
 
     <android.widget.TextClock
         android:id="@+id/hk_time"

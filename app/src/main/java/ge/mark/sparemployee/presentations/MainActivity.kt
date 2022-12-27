@@ -715,11 +715,11 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
 
     override fun onNetworkConnectionChanged(isConnected: Boolean) {
         if (!isConnected) {
-            viewBinding.networkStatus.visibility = VISIBLE
-            viewBinding.unableConnectServer.visibility = VISIBLE
+            viewBinding.networkStatus.setImageResource(R.drawable.red_ball)
+//            viewBinding.unableConnectServer.visibility = VISIBLE
         } else {
-            viewBinding.networkStatus.visibility = GONE
-            viewBinding.unableConnectServer.visibility = GONE
+            viewBinding.networkStatus.setImageResource(R.drawable.green_ball)
+//            viewBinding.unableConnectServer.visibility = GONE
         }
     }
 
@@ -736,17 +736,20 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
             pingCall?.enqueue(object : Callback<JsonObject> {
                 override fun onFailure(call: Call<JsonObject>, t: Throwable) {
                     viewBinding.networkStatus.visibility = VISIBLE
-                    viewBinding.unableConnectServer.visibility = VISIBLE
+                    viewBinding.networkStatus.setImageResource(R.drawable.red_ball)
+//                    viewBinding.unableConnectServer.visibility = VISIBLE
                 }
 
                 override fun onResponse(call: Call<JsonObject>, response: Response<JsonObject>) {
                     val resCode = response.code()
                     if (resCode == 200) {
-                        viewBinding.networkStatus.visibility = GONE
-                        viewBinding.unableConnectServer.visibility = GONE
+                        viewBinding.networkStatus.setImageResource(R.drawable.green_ball)
+//                        viewBinding.networkStatus.visibility = GONE
+//                        viewBinding.unableConnectServer.visibility = GONE
                     } else {
-                        viewBinding.networkStatus.visibility = VISIBLE
-                        viewBinding.unableConnectServer.visibility = VISIBLE
+                        viewBinding.networkStatus.setImageResource(R.drawable.red_ball)
+//                        viewBinding.networkStatus.visibility = VISIBLE
+//                        viewBinding.unableConnectServer.visibility = VISIBLE
                     }
                     val apiResponse: JsonObject? = response.body()
                 }
