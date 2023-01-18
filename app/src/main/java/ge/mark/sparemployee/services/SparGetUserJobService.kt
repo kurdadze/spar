@@ -33,7 +33,7 @@ class SparGetUserJobService : JobService() {
                 }
                 try {
                     ApiCalls.getUsers(context = applicationContext)
-                    Thread.sleep(60000 * 60)
+                    Thread.sleep(60 * 60 * 1000)
                 } catch (e: InterruptedException) {
                     e.printStackTrace()
                 }

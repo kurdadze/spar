@@ -29,53 +29,30 @@ object ApiCalls {
                     call: Call<List<User>>,
                     response: Response<List<User>>
                 ) {
-                    dbHelper.deleteAllUsers()
-                    val res = response.body()
-                    res?.forEach {
-                        dbHelper.insertUser(
-                            User(
-                                first_name = it.first_name,
-                                last_name = it.last_name,
-                                pass_code = it.pass_code
-                            )
-                        )
+                    if(response.code() == 200){
+                        val res = response.body()
+                        if (res != null) {
+                            if(res.isNotEmpty()) {
+                                dbHelper.deleteAllUsers()
+                                res.forEach {
+                                    dbHelper.insertUser(
+                                        User(
+                                            first_name = it.first_name,
+                                            last_name = it.last_name,
+                                            pass_code = it.pass_code
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        Log.v("retrofit", "call failed")
                     }
-                    Log.v("retrofit", "call failed")
                 }
 
                 override fun onFailure(call: Call<List<User>>, t: Throwable) {
                     Log.v("retrofit", "call failed")
                 }
 
-            })
-        }
-    }
-
-    fun ping(context: Context) {
-        if (NetworkUtil.isNetworkAvailable(context = context)) {
-            val sysHelper = SysHelper(context = context)
-            val pingCall = ApiClient.getService()
-                ?.ping(
-                    CONTROLLER_CODE = sysHelper.getDeviceID(),
-                    CONTROLLER_MODEL = "Tablet",
-                    CONTROLLER_TIME = sysHelper.getDateTimeNow()
-                )
-
-            pingCall?.enqueue(object : Callback<JsonObject> {
-                override fun onFailure(call: Call<JsonObject>, t: Throwable) {
-                    Log.v("retrofit", "call failed")
-                    SparApplication.pingState = false
-                }
-
-                override fun onResponse(call: Call<JsonObject>, response: Response<JsonObject>) {
-                    val resCode = response.code()
-                    SparApplication.pingState = true
-                    if (resCode == 400) {
-                        SparApplication.pingState = false
-                    }
-                    val apiResponse: JsonObject? = response.body()
-                    Log.v("retrofit", "call success")
-                }
             })
         }
     }
@@ -109,10 +86,6 @@ object ApiCalls {
                     val resCode: Int? = response.code()
                     val apiResponse: JsonObject? = response.body()
                     dbHelper.deleteWorker(hash)
-                    val filePathImg =
-                        Environment.getExternalStoragePublicDirectory("Pictures/Spar").toString()
-                    val file = File("$filePathImg/$photo_name")
-                    file.delete()
                     Log.v("retrofit", "call success")
                 }
             })

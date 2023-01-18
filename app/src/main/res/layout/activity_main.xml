@@ -10,7 +10,7 @@
     <androidx.camera.view.PreviewView
         android:id="@+id/viewFinder"
         android:layout_width="match_parent"
-        android:layout_height="470dp"
+        android:layout_height="300dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -36,7 +36,7 @@
         android:layout_marginTop="35dp"
         app:layout_constraintEnd_toStartOf="@+id/hk_time"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/green_ball" />
+        app:srcCompat="@drawable/red_ball" />
 
 <!--    <androidx.appcompat.widget.AppCompatTextView-->
 <!--        android:id="@+id/unableConnectServer"-->
@@ -280,36 +280,6 @@
         app:layout_constraintHorizontal_bias="0.75"
         app:layout_constraintStart_toEndOf="@+id/clearAll"
         app:layout_constraintTop_toBottomOf="@+id/number9" />
-
-    <Button
-        android:id="@+id/file_button"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:elevation="2dp"
-        android:text="@string/file"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
-        app:layout_constraintEnd_toEndOf="@+id/viewFinder" />
-
-    <Button
-        android:id="@+id/video_capture_button"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:elevation="2dp"
-        android:text="@string/start_capture"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
-        app:layout_constraintEnd_toEndOf="@+id/viewFinder" />
-
-    <Button
-        android:id="@+id/photo_activity"
-        android:layout_width="134dp"
-        android:layout_height="79dp"
-        android:elevation="2dp"
-        android:text="ფოტოები"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/viewFinder"
-        app:layout_constraintEnd_toEndOf="@+id/viewFinder" />
 
     <TextView
         android:id="@+id/textDeviceId"

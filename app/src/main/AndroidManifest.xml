@@ -16,6 +16,7 @@
     <application
         android:name=".presentations.SparApplication"
         android:allowBackup="true"
+        android:requestLegacyExternalStorage="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -24,10 +25,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SparEmployee"
         tools:targetApi="31">
-        <activity
-            android:name=".presentations.PhotoActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
+        <meta-data
+            android:name="io.sentry.dsn"
+            android:value="https://633094b8f35a47b7a2461244e729073f@logs.self.ge/80" />
         <activity
             android:name=".presentations.MainActivity"
             android:exported="true"
@@ -38,19 +38,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name = ".services.MyReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name = "android.net.conn.CONNECTIVITY_CHANGE"
-                    tools:ignore="BatteryLife" />
-                <action android:name = "android.net.wifi.WIFI_STATE_CHANGED" />
-            </intent-filter>
-        </receiver>
+<!--        <receiver android:name = ".services.MyReceiver"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action android:name = "android.net.conn.CONNECTIVITY_CHANGE"-->
+<!--                    tools:ignore="BatteryLife" />-->
+<!--                <action android:name = "android.net.wifi.WIFI_STATE_CHANGED" />-->
+<!--            </intent-filter>-->
+<!--        </receiver>-->
         <service
             android:name=".services.SparSendOfflineDataJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-        <service
-            android:name=".services.SparPingJobService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
         <service
             android:name=".services.SparGetUserJobService"

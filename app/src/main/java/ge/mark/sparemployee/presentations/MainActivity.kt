@@ -6,10 +6,7 @@ import android.app.job.JobInfo
 import android.app.job.JobScheduler
 import android.content.*
 import android.content.pm.PackageManager
-import android.icu.text.SimpleDateFormat
-import android.net.ConnectivityManager
 import android.os.*
-import android.provider.MediaStore
 import android.provider.MediaStore.Images
 import android.provider.MediaStore.MediaColumns
 import android.text.Editable
@@ -28,22 +25,19 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.*
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.PermissionChecker
 import com.google.gson.JsonObject
 import ge.mark.sparemployee.R
 import ge.mark.sparemployee.databinding.ActivityMainBinding
 import ge.mark.sparemployee.helpers.DbHelper
-import ge.mark.sparemployee.helpers.Network
 import ge.mark.sparemployee.helpers.SysHelper
 import ge.mark.sparemployee.models.User
 import ge.mark.sparemployee.models.Worker
 import ge.mark.sparemployee.network.ApiClient
-import ge.mark.sparemployee.network.calls.ApiCalls
-import ge.mark.sparemployee.services.MyReceiver
 import ge.mark.sparemployee.services.SparGetUserJobService
-import ge.mark.sparemployee.services.SparPingJobService
 import ge.mark.sparemployee.services.SparSendOfflineDataJobService
 import ge.mark.sparemployee.utils.NetworkUtil
+import io.sentry.Sentry
+import io.sentry.SentryLevel
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -55,12 +49,11 @@ import java.util.concurrent.Executors
 
 //typealias LumaListener = (luma: Double) -> Unit
 
-class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListener {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var dbHelper: DbHelper
     private lateinit var sysHelper: SysHelper
 
-    //    private lateinit var myReceiver: BroadcastReceiver
     private lateinit var viewBinding: ActivityMainBinding
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var yourCountDownTimer: CountDownTimer
@@ -86,6 +79,10 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
         sysHelper = SysHelper(this)
         dbHelper = DbHelper(this)
 
+        // Sentry Integration
+        Sentry.captureMessage("Run App On Device: " + sysHelper.getDeviceID())
+        Sentry.configureScope { scope -> scope.level = SentryLevel.WARNING }
+
         yourCountDownTimer = object : CountDownTimer(11000, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 viewBinding.imageCaptureButton.text = (millisUntilFinished / 1000).toString()
@@ -95,23 +92,6 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
                 viewBinding.imageCaptureButton.text = ""
             }
         }.start()
-
-
-        registerReceiver(MyReceiver(), IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
-
-//        myReceiver = MyReceiver()
-//        IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED).also {
-//            registerReceiver(
-//                myReceiver,
-//                it
-//            )
-//        }
-//        IntentFilter(WifiManager.NETWORK_STATE_CHANGED_ACTION).also {
-//            registerReceiver(
-//                myReceiver,
-//                it
-//            )
-//        }
 
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
@@ -146,18 +126,9 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
         viewBinding.number8.setOnClickListener { defNumber("8") }
         viewBinding.number9.setOnClickListener { defNumber("9") }
 
-        viewBinding.photoActivity.setOnClickListener {
-            Toast.makeText(this, sysHelper.getDeviceID(), Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, PhotoActivity::class.java)
-            startActivity(intent)
-        }
         viewBinding.numberBackSpace.setOnClickListener { deleteNumber() }
         viewBinding.clearAll.setOnClickListener { clearAll() }
         viewBinding.imageCaptureButton.setOnClickListener { takePhoto() }
-        viewBinding.videoCaptureButton.setOnClickListener { captureVideo() }
-        viewBinding.fileButton.setOnClickListener {
-            getOfflinePhotos()
-        }
 
         viewBinding.textViewNumber.addTextChangedListener(object : TextWatcher {
 
@@ -181,18 +152,17 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         Handler(Looper.getMainLooper()).postDelayed({
-            startPingJob()
             startGetUserJob()
             startGetOfflineJob()
-        }, 20000)
+            Thread(kotlinx.coroutines.Runnable {
+                do {
+                    ping(context = applicationContext)
+                    Thread.sleep(60000)
+                } while (1 == 1)
+            }).start()
+        }, 30000)
 
 
-        Thread(kotlinx.coroutines.Runnable {
-            do {
-                ping(context = applicationContext)
-                Thread.sleep(20000)
-            } while (1 == 1)
-        }).start()
     }
 
     private fun showHideButtons(state: String) {
@@ -348,7 +318,8 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
 
                     val filePathImg =
                         Environment.getExternalStoragePublicDirectory("Pictures/Spar").toString()
-                    val ba = sysHelper.fileToBase64("$filePathImg/$pictureName.jpg")
+//                    val ba = sysHelper.fileToBase64("$filePathImg/$pictureName.jpg")
+                    val ba = sysHelper.fileToBase64(output)
 
                     val pin = viewBinding.textViewNumber.text.toString()
 
@@ -358,23 +329,27 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
                         controller_code = sysHelper.getDeviceID(),
                         pin = pin,
                         datetime = sysHelper.getDateTimeNow(),
-                        picture = ba!!,
+                        picture = ba,
                         hash = hash,
                         photo_name = "$pictureName.jpg"
                     )
                     val insertStatus = dbHelper.insertWorker(worker)
                     if (insertStatus) {
-                        if (Network.isNetworkAvailable(context = applicationContext)) {
-                            ApiCalls.sendDataToServer(
-                                context = applicationContext,
-                                controller_code = worker.controller_code,
-                                pin = worker.pin,
-                                datetime = worker.datetime,
-                                picture = worker.picture,
-                                hash = worker.hash,
-                                photo_name = worker.photo_name
-                            )
-                        }
+//                        if (Network.isNetworkAvailable(context = applicationContext)) {
+//                            ApiCalls.sendDataToServer(
+//                                context = applicationContext,
+//                                controller_code = worker.controller_code,
+//                                pin = worker.pin,
+//                                datetime = worker.datetime,
+//                                picture = worker.picture,
+//                                hash = worker.hash,
+//                                photo_name = worker.photo_name
+//                            )
+//                        }
+                        val filePathImg =
+                            Environment.getExternalStoragePublicDirectory("Pictures/Spar").toString()
+                        val file = File("$filePathImg/$pictureName.jpg")
+                        file.delete()
                         showHideButtons("hide")
                         viewBinding.textViewNumber.text = ""
                         viewBinding.toastTextView.setBackgroundColor(getColor(R.color.green))
@@ -391,86 +366,6 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
                 }
             }
         )
-    }
-
-//    private fun fileToBitmap(f: String): ByteArray {
-//        val filePath = File(f).path
-//        val bitmap = BitmapFactory.decodeFile(filePath)
-//        val stream = ByteArrayOutputStream()
-//        bitmap.compress(Bitmap.CompressFormat.JPEG, 30, stream)
-//        return stream.toByteArray()
-//    }
-
-    private fun captureVideo() {
-        val videoCapture = this.videoCapture ?: return
-
-        viewBinding.videoCaptureButton.isEnabled = false
-
-        val curRecording = recording
-        if (curRecording != null) {
-            // Stop the current recording session.
-            curRecording.stop()
-            recording = null
-            return
-        }
-
-        // create and start a new recording session
-        val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
-            .format(System.currentTimeMillis())
-        val contentValues = ContentValues().apply {
-            put(MediaColumns.DISPLAY_NAME, name)
-            put(MediaColumns.MIME_TYPE, "video/mp4")
-            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
-                put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/CameraX-Video")
-            }
-        }
-
-        val mediaStoreOutputOptions = MediaStoreOutputOptions
-            .Builder(contentResolver, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-            .setContentValues(contentValues)
-            .build()
-        recording = videoCapture.output
-            .prepareRecording(this, mediaStoreOutputOptions)
-            .apply {
-                if (PermissionChecker.checkSelfPermission(
-                        this@MainActivity,
-                        Manifest.permission.RECORD_AUDIO
-                    ) ==
-                    PermissionChecker.PERMISSION_GRANTED
-                ) {
-                    withAudioEnabled()
-                }
-            }
-            .start(ContextCompat.getMainExecutor(this)) { recordEvent ->
-                when (recordEvent) {
-                    is VideoRecordEvent.Start -> {
-                        viewBinding.videoCaptureButton.apply {
-                            text = getString(R.string.stop_capture)
-                            isEnabled = true
-                        }
-                    }
-                    is VideoRecordEvent.Finalize -> {
-                        if (!recordEvent.hasError()) {
-                            val msg = "Video capture succeeded: " +
-                                    "${recordEvent.outputResults.outputUri}"
-                            Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT)
-                                .show()
-                            Log.d(TAG, msg)
-                        } else {
-                            recording?.close()
-                            recording = null
-                            Log.e(
-                                TAG, "Video capture ends with error: " +
-                                        "${recordEvent.error}"
-                            )
-                        }
-                        viewBinding.videoCaptureButton.apply {
-                            text = getString(R.string.start_capture)
-                            isEnabled = true
-                        }
-                    }
-                }
-            }
     }
 
     private fun startCamera() {
@@ -497,16 +392,6 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
             videoCapture = VideoCapture.withOutput(recorder)
 
             imageCapture = ImageCapture.Builder().build()
-
-            /*
-            val imageAnalyzer = ImageAnalysis.Builder()
-                .build()
-                .also {
-                    it.setAnalyzer(cameraExecutor, LuminosityAnalyzer { luma ->
-                        Log.d(TAG, "Average luminosity: $luma")
-                    })
-                }
-             */
 
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
@@ -554,14 +439,12 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
     override fun onRestart() {
         super.onRestart()
         Log.d("qq", "Restart")
-//        startPingJob()
-        startGetUserJob()
-        startGetOfflineJob()
+//        startGetUserJob()
+//        startGetOfflineJob()
     }
 
     override fun onResume() {
         super.onResume()
-        MyReceiver.connectivityReceiverListener = this
         Log.d("qq", "Resume")
     }
 
@@ -569,21 +452,19 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
         super.onDestroy()
         cameraExecutor.shutdown()
         dbHelper.close()
-//        stopJob(123)
         stopJob(321)
         stopJob(111)
     }
 
     override fun onStop() {
         super.onStop()
-        unregisterReceiver(MyReceiver())
     }
 
     override fun onPause() {
         super.onPause()
 //        stopJob(123)
-        stopJob(321)
-        stopJob(111)
+//        stopJob(321)
+//        stopJob(111)
     }
 
     override fun onRequestPermissionsResult(
@@ -646,29 +527,7 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
         val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             JobInfo.Builder(111, componentName)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                .setPeriodic((15 * 60 * 1000).toLong())
-                .setRequiresCharging(false)
-                .setPersisted(true)
-                .build()
-        } else {
-            TODO("VERSION.SDK_INT < P")
-        }
-
-        val scheduler = getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler
-        val resultCode = scheduler.schedule(info)
-        if (resultCode == JobScheduler.RESULT_SUCCESS) {
-            Log.i(TAG, "Job scheduled")
-        } else {
-            Log.i(TAG, "Job scheduling failed")
-        }
-    }
-
-    private fun startPingJob() {
-        val componentName = ComponentName(this, SparPingJobService::class.java)
-        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            JobInfo.Builder(123, componentName)
-                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                .setPeriodic((15 * 60 * 1000).toLong())
+//                .setPeriodic((60 * 1000).toLong())
                 .setRequiresCharging(false)
                 .setPersisted(true)
                 .build()
@@ -690,7 +549,7 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
         val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             JobInfo.Builder(321, componentName)
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
-                .setPeriodic((15 * 60 * 1000).toLong())
+//                .setPeriodic((15 * 60 * 1000).toLong())
                 .setRequiresCharging(false)
                 .setPersisted(true)
                 .build()
@@ -713,16 +572,6 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
         Log.i(TAG, "Job cancelled")
     }
 
-    override fun onNetworkConnectionChanged(isConnected: Boolean) {
-        if (!isConnected) {
-            viewBinding.networkStatus.setImageResource(R.drawable.red_ball)
-//            viewBinding.unableConnectServer.visibility = VISIBLE
-        } else {
-            viewBinding.networkStatus.setImageResource(R.drawable.green_ball)
-//            viewBinding.unableConnectServer.visibility = GONE
-        }
-    }
-
     private fun ping(context: Context) {
         if (NetworkUtil.isNetworkAvailable(context = context)) {
             val sysHelper = SysHelper(context = context)
@@ -735,7 +584,7 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
 
             pingCall?.enqueue(object : Callback<JsonObject> {
                 override fun onFailure(call: Call<JsonObject>, t: Throwable) {
-                    viewBinding.networkStatus.visibility = VISIBLE
+//                    viewBinding.networkStatus.visibility = VISIBLE
                     viewBinding.networkStatus.setImageResource(R.drawable.red_ball)
 //                    viewBinding.unableConnectServer.visibility = VISIBLE
                 }
@@ -754,6 +603,9 @@ class MainActivity : AppCompatActivity(), MyReceiver.ConnectivityReceiverListene
                     val apiResponse: JsonObject? = response.body()
                 }
             })
+        } else {
+//            viewBinding.networkStatus.visibility = VISIBLE
+            viewBinding.networkStatus.setImageResource(R.drawable.red_ball)
         }
     }
 }

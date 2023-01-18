@@ -49,7 +49,7 @@ class SparSendOfflineDataJobService : JobService() {
                             )
                         }
                     }
-                    Thread.sleep(15000)
+                    Thread.sleep(60 * 1000)
                 } catch (e: InterruptedException) {
                     e.printStackTrace()
                 }

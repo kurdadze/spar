@@ -1,17 +1,19 @@
 package ge.mark.sparemployee.helpers
 
+import android.R.attr.data
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.provider.Settings
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.IOException
+import androidx.camera.core.ImageCapture
+import java.io.*
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 class SysHelper(private var context: Context) {
 
@@ -25,24 +27,29 @@ class SysHelper(private var context: Context) {
         return SimpleDateFormat(format).format(Date())
     }
 
-    fun fileToBase64(filePath: String?): String? {
-        var base64File: String? = ""
-        val file = File(filePath!!)
+    fun fileToBase64(op: ImageCapture.OutputFileResults): String {
+        val imgStream: InputStream?
+        val bitmap: Bitmap
         try {
-            FileInputStream(file).use { imageInFile ->
-                // Reading a file from file system
-                val fileData = ByteArray(file.length().toInt())
-                imageInFile.read(fileData)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    base64File = Base64.getEncoder().encodeToString(fileData)
-                }
+            imgStream  = context.contentResolver.openInputStream(op.savedUri!!)
+            bitmap = BitmapFactory.decodeStream(imgStream)
+        } catch (np: NullPointerException) {
+            return ""
+        }
+
+        var encodedImage = ""
+        try {
+            val baos = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 15, baos) // bm is the bitmap object
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                encodedImage = Base64.getEncoder().encodeToString(baos.toByteArray())
             }
         } catch (e: FileNotFoundException) {
             println("File not found$e")
         } catch (ioe: IOException) {
             println("Exception while reading the file $ioe")
         }
-        return base64File
+        return encodedImage
     }
 
     fun stringToMD5(str: String): String {
